@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        USER_ID: ${DOCKER_UID:-1000}
+        GROUP_ID: ${DOCKER_GID:-1000}
+    container_name: rjet-main
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    ports:
+      - "8080:80"
