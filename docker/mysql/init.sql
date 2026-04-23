@@ -1,0 +1,4 @@
+SET NAMES utf8mb4;
+SET time_zone = '-03:00';
+
+SELECT DATABASE(), CURRENT_USER(), VERSION();

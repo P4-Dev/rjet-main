@@ -1,13 +1,123 @@
 services:
   app:
+    container_name: app
+    dns:
+      - 8.8.8.8  # Google DNS
+      - 1.1.1.1  # Cloudflare
     build:
       context: .
-      args:
-        USER_ID: ${DOCKER_UID:-1000}
-        GROUP_ID: ${DOCKER_GID:-1000}
-    container_name: rjet-main
-    restart: unless-stopped
+      dockerfile: Dockerfile.dev
+    working_dir: /var/www/
     volumes:
-      - .:/var/www
+      - ./:/var/www/
+    restart: no
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app
     ports:
-      - "8080:80"
+      - "5173:5173"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_app
+    restart: no
+    ports:
+      - "80:80"
+    environment:
+      FASTCGI_PASS: app:9000
+    volumes:
+      - ./public:/var/www/public
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/default.conf:/etc/nginx/templates/default.conf.template
+    depends_on:
+      - app
+    networks:
+      - app
+
+  postgres:
+    container_name: postgres_app
+    image: postgres:latest
+    restart: no
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - pgsql-app:/var/lib/postgresql/data
+      - ./docker/postgresql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app
+
+  # ---- MySQL (descomente para usar no lugar do PostgreSQL) ----
+  # Lembre-se de:
+  #   1. Comentar o servico 'postgres' acima
+  #   2. Trocar depends_on do servico 'app' de 'postgres' para 'mysql'
+  #   3. Ajustar o .env: DB_CONNECTION=mysql / DB_HOST=mysql / DB_PORT=3306
+  #
+  # mysql:
+  #   container_name: mysql_app
+  #   image: mysql:8.4
+  #   restart: no
+  #   ports:
+  #     - "3306:3306"
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - mysql-app:/var/lib/mysql
+  #     - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+  #     - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+  #   environment:
+  #     MYSQL_DATABASE: ${DB_DATABASE}
+  #     MYSQL_USER: ${DB_USERNAME}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+  #     MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - app
+
+  redis:
+    container_name: redis_app
+    image: redis:alpine
+    restart: no
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-app:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app
+
+volumes:
+  pgsql-app:
+    driver: local
+    name: pgsql-app
+  # mysql-app:
+  #   driver: local
+  #   name: mysql-app
+  redis-app:
+    driver: local
+    name: redis-app
+
+networks:
+  app:
+    driver: bridge
+    name: app

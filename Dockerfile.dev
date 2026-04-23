@@ -1,0 +1,95 @@
+# Base image PHP-FPM
+FROM php:8.4-rc-fpm
+
+# Argumentos para o usuário
+ARG user=devuser
+ARG uid=1000
+
+# Set timezone e frontend não-interativo
+ENV TZ=America/Sao_Paulo \
+    DEBIAN_FRONTEND=noninteractive
+
+# Adicionar repositório oficial do PostgreSQL para versão 18
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    lsb-release \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
+# Instalar dependências do sistema e ferramentas necessárias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor \
+    procps \
+    unzip \
+    pkg-config \
+    libicu-dev \
+    libpq-dev \
+    libzip-dev \
+    zlib1g-dev \
+    libxml2-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libgmp-dev \
+    default-mysql-client \
+    postgresql-client-18 \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar Node.js e NPM
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
+
+# Extensões do PHP - Configure GD com jpeg/webp/freetype
+RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype
+
+# Compilar tudo em paralelo
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql pgsql pdo_mysql \
+        mbstring exif pcntl bcmath gd sockets \
+        zip soap intl gmp
+
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Instalar Redis PHP extension
+RUN pecl install -o -f redis && docker-php-ext-enable redis
+
+# Criar usuário para rodar a aplicação
+RUN useradd -u $uid -G www-data,root -m -d /home/$user $user && \
+    mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
+
+# Cria e dá permissão nos diretórios de log/run do Supervisor
+RUN mkdir -p /var/log/supervisor /var/run/supervisor /run/php \
+    && chown -R $user:$user /var/log/supervisor /var/run/supervisor /run/php
+
+# Copiar configuração do Supervisor para conf.d
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copiar código do Laravel para a pasta do servidor
+COPY . /var/www
+
+# Ajustar permissões do Laravel (pasta storage e bootstrap/cache)
+RUN chown -R $user:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Copiar configuração PHP customizada
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Copiar o entrypoint e ajustar permissões
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# # Expor portas HTTP e WebSocket
+EXPOSE 80 6024
+
+# Trocar para usuário não-root para segurança
+USER $user
+
+# Definir entrada do container para rodar o Supervisor corretamente
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
