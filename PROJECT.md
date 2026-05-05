@@ -1,15 +1,8 @@
-# 📋 PROJECT.md - Configure seu projeto aqui
-
-> ⚠️ **EDITE ESTE ARQUIVO** para cada novo projeto.
-> Depois rode `./setup.sh` para aplicar as configurações.
-
----
-
 ## Informações Básicas
 
 ```yaml
 nome: "RJET"
-descricao: "Plataforma interna de gerenciamento de BPO financeiro e DHO da empresa RJET."
+descricao: "Plataforma interna de gerenciamento de BPO financeiro da empresa RJET."
 versao_laravel: "13"        # 10, 11, ou 12
 versao_filament: "5"        # 3, 4, ou 5
 versao_php: "8.4"           # 8.1, 8.2, 8.3, ou 8.4
@@ -865,33 +858,79 @@ mensagens:
 <!-- Exemplo: -->
 
 ### Regras de Negócio
-- Pedidos só podem ser cancelados se status != 'shipped'
-- Usuários admin podem ver todos os recursos
-- Notificações são enviadas via queue
+Página de configurações e cadastros:
+
+Cadastro de perfil:
+
+> Perfil Cliente: Acesso para visualizar as solicitações e incluir novas solicitações.
+> Perfil Operador: Acesso para visualizar as solicitações, incluir novas solicitações e alterar o status e dados dos campos de solicitações já registradas
+> Perfil ADM: Além de ter as mesmas alçadas do perfil operador, ele poderá cadastrar usuário, excluir registros e solicitações, criar novas classificações gerenciais (descrição do que é isso abaixo). 
+
+Cadastro de usuário:
+
+> Nome, e-mail, filial que pertence e perfil do sistema.
+
+Cadastro Classificações Gerenciais:
+
+Filial: Tela para inserir o nome da filial, o CNPJ, a razão social e os dados bancários
+
+Centro de custo: Tela para cadastrar centro de custos dentro das filiais
+
+Apropriação: Tela para cadastrar as opções de tipo de despesas. 
+
+
+Tela de solicitação de pagamento:
+
+Obs: Filial: gravar automaticamente conforme usuário que está solicitando.
+
+Bloco: Identificação do pagamento:
+
+Data solicitação (preencher automáticamente a data em que for salvo a solicitação)
+Data de emissão do documento (calendário para selecionar)
+Tipo: Pessoa Física (PF) ou Pessoa Jurídica (PJ)
+>CPF/CNPJ
+>Fornecedor
+>Anexe NF, recibo ou comprovante da compra
+>Valor bruto
+> Descontos/Deduções
+>Valor líquido a pagar (valor líquido é valor bruto - descontos/deduções)
+
+
+Bloco: Classificação Financeira:
+>Centro de custo
+>Apropriação
+
+
+Bloco: Condições de pagamento:
+
+>Data de vencimento
+> Forma de pagamento (drop down com opções) e:
+
+Se:  
+ Boleto: abrir a opção de anexar o boleto (Anexar boleto local determinado)
+
+Depósito: Campo favorecido (carregar o fornecedor do bloco acima)
+Escolher entre pix e transferência.
+Se for pix escolher se é chave aleatória ou CPF/celular/email e o campo abrir personalizado. Se for dados bancários abrir nome do banco (colocar uma lista bacen), campo da agência, campo do conta corrente e dígito.
+
+
+Botão solicitar
+
+
+Status de pagamento possíveis:
+
+Pagamento solicitado é o primeiro
+Opção de alterar status individualmente ou em lote para pagamento lançado no sistema.
+
+Depois a tela de baixa com filtros de filial/data vencimento. Na tela de baixa selecionar o banco que foi pago para gravar em.todos os pagamentos filtrados e também inserir a data de baixa ( data pagamento banco). Status será Pagamento efetivado
+
+Ocr leitura de código de barras
+Workflow de aprovação
+Relatórios de exportação analítico com todos os dados, e os anexos vem na planilha com o link para abrir no navegador.
+Gerar arquivo cnab de pagamento para inserir no banco. Cnab para boleto, cnab para transferência e cnab para pix. Na configuração dos cnabs, inserir dados e parâmetros da conta de cada filial do cliente.
 
 ### Padrões de API
 - Sempre retornar JSON
 - Usar API Resources para transformação
 - Versionamento via URL (/api/v1/)
-
-### Outras Regras
-- ...
 ```
-
----
-
-## Checklist de Setup
-
-- [ ] Editei as informações básicas acima
-- [ ] Configurei a arquitetura conforme meu projeto
-- [ ] Defini os padrões de testes
-- [ ] Configurei os padrões visuais (cores, ícones, navegação)
-- [ ] Mapeei ícones para os módulos do meu projeto
-- [ ] Adicionei regras específicas do projeto
-- [ ] Configurei storage e uploads
-- [ ] Criei factories para todos os Models
-- [ ] Configurei scheduling e commands
-- [ ] Defini regras de soft delete
-- [ ] Configurei PHPStan (level 5+) e Pint
-- [ ] Rodei `./setup.sh` para aplicar configurações
-- [ ] Rodei `php artisan boost:update` para gerar CLAUDE.md
