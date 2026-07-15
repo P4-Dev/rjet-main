@@ -10,6 +10,7 @@ services:
     working_dir: /var/www/
     volumes:
       - ./:/var/www/
+      - ./docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
     restart: no
     depends_on:
       - postgres
@@ -24,7 +25,8 @@ services:
     container_name: nginx_app
     restart: no
     ports:
-      - "80:80"
+      # Valet Linux: valet proxy <project> http://localhost:8080
+      - "8080:80"
     environment:
       FASTCGI_PASS: app:9000
     volumes:
@@ -38,14 +40,16 @@ services:
 
   postgres:
     container_name: postgres_app
-    image: postgres:latest
+    # Pin major version — postgres:latest (18+) changed the data dir layout
+    # and breaks existing volumes mounted at /var/lib/postgresql/data.
+    image: postgres:16
     restart: no
     ports:
       - "5432:5432"
     env_file:
       - .env
     volumes:
-      - pgsql-app:/var/lib/postgresql/data
+      - pgsql-rjet:/var/lib/postgresql/data
       - ./docker/postgresql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     environment:
       POSTGRES_DB: ${DB_DATABASE}
@@ -97,7 +101,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis-app:/data
+      - redis-rjet:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -107,17 +111,17 @@ services:
       - app
 
 volumes:
-  pgsql-app:
+  pgsql-rjet:
     driver: local
-    name: pgsql-app
+    name: pgsql-rjet
   # mysql-app:
   #   driver: local
   #   name: mysql-app
-  redis-app:
+  redis-rjet:
     driver: local
-    name: redis-app
+    name: redis-rjet
 
 networks:
   app:
     driver: bridge
-    name: app
+    name: rjet-app

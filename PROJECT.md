@@ -280,6 +280,7 @@ driver: "pgsql"                 # mysql, pgsql, sqlite
 usa_uuid: true                  # UUID como primary key
 usa_soft_deletes: true          # Soft deletes por padrão
 usa_timestamps: true            # created_at, updated_at
+usa_timestamps_tz: true         # timestampsTz() + softDeletesTz() (timestamptz) — timezone America/Sao_Paulo
 enum_como_string: true          # Enum no banco = string, cast para Enum PHP
 normalizacao_minima: "3NF"      # Terceira Forma Normal
 morph_map: true                 # Usar Relation::enforceMorphMap()

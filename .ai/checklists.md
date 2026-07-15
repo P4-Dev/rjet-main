@@ -28,11 +28,11 @@
 ## 2. Migration
 
 - [ ] PK e UUID: `$table->uuid('id')->primary()` (database)
-- [ ] `$table->timestamps()` presente (database)
-- [ ] `$table->softDeletes()` quando aplicavel (database)
+- [ ] `$table->timestampsTz()` presente (database)
+- [ ] `$table->softDeletesTz()` quando aplicavel (database)
 - [ ] Tabela na 3NF ou desnormalizacao documentada com comentario (database)
 - [ ] Booleanos com prefixo `is_` ou `has_`: `$table->boolean('is_active')` (database)
-- [ ] Datas de evento com sufixo `_at`: `$table->timestamp('published_at')` (database)
+- [ ] Datas de evento com sufixo `_at`: `$table->timestampTz('published_at')` (database)
 - [ ] Rastreamento de autoria com sufixo `_by`: `$table->foreignUuid('created_by')` (database)
 - [ ] Ordenacao usa `sort_order`: `$table->unsignedInteger('sort_order')` (database)
 - [ ] Status/Tipo SEMPRE como `$table->string('status', 20)` — `$table->enum()` e PROIBIDO (database, enums)

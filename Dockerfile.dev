@@ -40,9 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar Node.js e NPM
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g npm@latest
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs
 
 # Extensões do PHP - Configure GD com jpeg/webp/freetype
 RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype

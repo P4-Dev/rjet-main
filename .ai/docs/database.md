@@ -40,9 +40,11 @@ $table->decimal('unit_price', 10, 2);
 
 ```php
 $table->uuid('id')->primary();          // PK sempre UUID
-$table->timestamps();                    // created_at, updated_at
-$table->softDeletes();                   // deleted_at
+$table->timestampsTz();                  // created_at, updated_at (timestamptz)
+$table->softDeletesTz();                 // deleted_at (timestamptz)
 ```
+
+> **Convenção do projeto:** use sempre `timestampsTz()` e `softDeletesTz()` (não `timestamps()` / `softDeletes()`). O timezone de negócio é `America/Sao_Paulo` (`PROJECT.md`). Datas de evento pontuais (`published_at`, `email_verified_at`, etc.) também devem preferir `timestampTz()` / `nullableTimestampsTz()` quando aplicável.
 
 ### Convenção de Nomes por Tipo
 
@@ -79,17 +81,18 @@ $table->string('priority', 20)->default('normal')->index();
 #### Datas de evento - sufixo `_at`
 
 ```php
-$table->timestamp('published_at')->nullable();
-$table->timestamp('approved_at')->nullable();
-$table->timestamp('expired_at')->nullable()->index();
-$table->timestamp('completed_at')->nullable();
-$table->timestamp('cancelled_at')->nullable();
-$table->timestamp('verified_at')->nullable();
-$table->timestamp('starts_at')->nullable();
-$table->timestamp('ends_at')->nullable();
+$table->timestampTz('published_at')->nullable();
+$table->timestampTz('approved_at')->nullable();
+$table->timestampTz('expired_at')->nullable()->index();
+$table->timestampTz('completed_at')->nullable();
+$table->timestampTz('cancelled_at')->nullable();
+$table->timestampTz('verified_at')->nullable();
+$table->timestampTz('starts_at')->nullable();
+$table->timestampTz('ends_at')->nullable();
 ```
 
 **Nunca:** `publish_date`, `date_approved`, `expiry`
+**Convenção:** preferir `timestampTz()` (timestamptz) alinhado a `timestampsTz()` / timezone `America/Sao_Paulo`.
 
 #### Rastreamento de autoria - sufixo `_by`
 
@@ -217,8 +220,8 @@ Schema::create('addresses', function (Blueprint $table) {
     $table->string('zip_code', 10);
     $table->string('country', 2)->default('BR');
     $table->boolean('is_default')->default(false);
-    $table->timestamps();
-    $table->softDeletes();
+    $table->timestampsTz();
+    $table->softDeletesTz();
 
     $table->index(['addressable_type', 'addressable_id', 'type']);
 });
@@ -283,8 +286,8 @@ Schema::create('contacts', function (Blueprint $table) {
     $table->string('position', 100)->nullable();      // cargo/função
     $table->string('department', 100)->nullable();
     $table->boolean('is_default')->default(false);
-    $table->timestamps();
-    $table->softDeletes();
+    $table->timestampsTz();
+    $table->softDeletesTz();
 
     $table->index(['contactable_type', 'contactable_id', 'type']);
 });
@@ -306,7 +309,7 @@ Schema::create('customer_addresses', function (Blueprint $table) {
     $table->foreignUuid('customer_id')->constrained()->cascadeOnDelete();
     // campos de endereço + campos específicos de customer
     $table->boolean('is_delivery_point')->default(false); // campo específico
-    $table->timestamps();
+    $table->timestampsTz();
 });
 
 Schema::create('supplier_addresses', function (Blueprint $table) {
@@ -314,7 +317,7 @@ Schema::create('supplier_addresses', function (Blueprint $table) {
     $table->foreignUuid('supplier_id')->constrained()->cascadeOnDelete();
     // campos de endereço + campos específicos de supplier
     $table->string('dock_info')->nullable(); // campo específico
-    $table->timestamps();
+    $table->timestampsTz();
 });
 ```
 
@@ -360,7 +363,7 @@ Schema::create('order_product', function (Blueprint $table) {
     $table->foreignUuid('product_id')->constrained()->cascadeOnDelete();
     $table->unsignedInteger('quantity')->default(1);
     $table->decimal('unit_price', 10, 2);
-    $table->timestamps();
+    $table->timestampsTz();
 
     $table->unique(['order_id', 'product_id']);
 });
@@ -394,7 +397,7 @@ Schema::create('settings', function (Blueprint $table) {
     $table->string('key', 100);
     $table->text('value')->nullable();
     $table->string('type', 20)->default('string'); // string, integer, boolean, json
-    $table->timestamps();
+    $table->timestampsTz();
 
     $table->unique(['group', 'key']);
 });
@@ -416,7 +419,7 @@ Schema::create('settings', function (Blueprint $table) {
 | `document` (CPF/CNPJ) | `->index()` |
 | `created_at` (ordenação) | Já indexado por timestamps |
 | `sort_order` | `->index()` |
-| `deleted_at` | Já indexado por `softDeletes()` |
+| `deleted_at` | Já indexado por `softDeletesTz()` |
 | morph (`*able_type` + `*able_id`) | Usar `uuidMorphs()` |
 
 ### Índices Compostos Frequentes

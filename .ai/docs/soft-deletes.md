@@ -67,12 +67,12 @@ Schema::create('customers', function (Blueprint $table) {
     $table->string('name');
     $table->string('email')->unique();
     $table->boolean('is_active')->default(true)->index();
-    $table->timestamps();
-    $table->softDeletes(); // adiciona deleted_at (nullable timestamp) + indice
+    $table->timestampsTz();
+    $table->softDeletesTz(); // adiciona deleted_at (nullable timestamptz) + indice
 });
 ```
 
-**Nota:** `$table->softDeletes()` ja cria indice automaticamente no campo `deleted_at`.
+**Nota:** `$table->softDeletesTz()` ja cria indice automaticamente no campo `deleted_at`. Convenção do projeto: sempre `timestampsTz()` / `softDeletesTz()` (ver `database.md`).
 
 ### Model
 
@@ -110,7 +110,7 @@ final class Customer extends Model
 
 ```php
 Schema::table('products', function (Blueprint $table) {
-    $table->softDeletes();
+    $table->softDeletesTz();
 });
 
 // Rollback
@@ -899,7 +899,7 @@ it('can restore a soft-deleted record', function () {
 
 - [ ] Entidades de dominio usam `SoftDeletes` (trait + migration)
 - [ ] Dados transitorios (logs, sessoes, tokens) usam hard delete
-- [ ] Migration inclui `$table->softDeletes()`
+- [ ] Migration inclui `$table->softDeletesTz()`
 - [ ] Relacionamentos que referenciam soft-deleted usam `->withTrashed()` quando necessario
 - [ ] Cascade manual configurado via Observer ou trait `CascadesSoftDeletes`
 - [ ] **Nunca** confiar em `cascadeOnDelete()` da FK quando o parent usa SoftDeletes
