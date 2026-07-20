@@ -9,4 +9,5 @@ return [
     'validation' => 'Os dados informados são inválidos.',
     'server' => 'Erro interno do servidor.',
     'invalid_cnpj' => 'O CNPJ informado é inválido.',
+    'invalid_cpf' => 'O CPF informado é inválido.',
 ];

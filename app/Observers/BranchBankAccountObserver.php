@@ -4,17 +4,27 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Models\Bank;
 use App\Models\BranchBankAccount;
 use Illuminate\Database\Eloquent\Builder;
 
 final class BranchBankAccountObserver
 {
     /**
-     * Garante no máximo uma conta padrão por filial (complementa o índice único
-     * parcial do banco): desmarca as demais antes de persistir esta como padrão.
+     * Sync bank_code/bank_name from Bank when bank_id is set, and ensure at most
+     * one default account per branch (complements the partial unique index).
      */
     public function saving(BranchBankAccount $account): void
     {
+        if ($account->bank_id !== null && $account->isDirty('bank_id')) {
+            $bank = Bank::query()->find($account->bank_id);
+
+            if ($bank !== null) {
+                $account->bank_code = $bank->code;
+                $account->bank_name = $bank->name;
+            }
+        }
+
         if (! $account->is_default) {
             return;
         }

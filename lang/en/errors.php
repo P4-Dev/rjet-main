@@ -9,4 +9,5 @@ return [
     'validation' => 'The provided data is invalid.',
     'server' => 'Internal server error.',
     'invalid_cnpj' => 'The provided CNPJ is invalid.',
+    'invalid_cpf' => 'The provided CPF is invalid.',
 ];

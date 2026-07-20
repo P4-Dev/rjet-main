@@ -58,6 +58,14 @@ final class Branch extends Model
     }
 
     /**
+     * @return HasMany<CostCenter, $this>
+     */
+    public function costCenters(): HasMany
+    {
+        return $this->hasMany(CostCenter::class);
+    }
+
+    /**
      * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany

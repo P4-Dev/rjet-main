@@ -7,6 +7,7 @@ return [
     'plural' => 'Contas bancárias',
 
     'fields' => [
+        'bank_id' => 'Banco',
         'bank_code' => 'Código do banco',
         'bank_name' => 'Banco',
         'agency' => 'Agência',

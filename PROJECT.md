@@ -101,16 +101,16 @@ agentes:
 ```yaml
 # Docker
 usar_docker: true                # true = comandos rodam dentro do container
-container_app: "ia"              # Nome do container principal (PHP/artisan)
-container_db: "postgres_ia"               # Nome do container do banco de dados
+container_app: "app"             # Nome do serviço/container principal (PHP/artisan)
+container_db: "postgres"         # Nome do serviço do banco (container: postgres_app)
 docker_compose: "docker compose" # Comando do compose (docker compose ou docker-compose)
 
 # Prefixo de comandos — quando usar_docker = true, todos os comandos
 # artisan, pest, composer, npm devem ser executados assim:
-docker compose exec ia php artisan migrate
-docker compose exec ia ./vendor/bin/pest
-docker compose exec ia composer install
-docker compose exec ia npm run build
+docker compose exec app php artisan migrate
+docker compose exec app ./vendor/bin/pest
+docker compose exec app composer install
+docker compose exec app npm run build
 #
 # Quando usar_docker = false, rodar diretamente:
 #   php artisan migrate

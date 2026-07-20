@@ -61,6 +61,14 @@ final class BranchBankAccount extends Model
     }
 
     /**
+     * @return BelongsTo<Bank, $this>
+     */
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class);
+    }
+
+    /**
      * @param  Builder<BranchBankAccount>  $query
      * @return Builder<BranchBankAccount>
      */

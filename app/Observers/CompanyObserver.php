@@ -6,26 +6,30 @@ namespace App\Observers;
 
 use App\Models\Branch;
 use App\Models\Company;
-use Illuminate\Support\Carbon;
 
 final class CompanyObserver
 {
     /**
-     * Instante de exclusão capturado por company, usado como limite do restore
-     * em cascata (evita restaurar filhos excluídos independentemente antes).
+     * Soft-delete threshold captured per company for cascade restore.
      *
-     * @var array<string, Carbon|null>
+     * @var array<string, \Illuminate\Support\Carbon|null>
      */
     private array $restoreThresholds = [];
 
     /**
-     * Teardown administrativo: soft-delete das contas de cada filial e, em
-     * seguida, das filiais — sempre via query de relacionamento (bulk), o que
-     * ignora eventos de Model por linha e nunca aciona o guard do BranchService.
+     * Soft-delete order (bulk via query — never per-row Model events that trip guards):
+     * 1) supplier payment overrides
+     * 2) appropriations
+     * 3) per branch: cost centers, then bank accounts
+     * 4) branches
      */
     public function deleted(Company $company): void
     {
+        $company->supplierPaymentMethods()->delete();
+        $company->appropriations()->delete();
+
         $company->branches()->get()->each(function (Branch $branch): void {
+            $branch->costCenters()->delete();
             $branch->bankAccounts()->delete();
         });
 
@@ -34,24 +38,30 @@ final class CompanyObserver
 
     public function restoring(Company $company): void
     {
-        // Em `restoring` o deleted_at ainda reflete o instante da exclusão.
         $this->restoreThresholds[(string) $company->getKey()] = $company->deleted_at;
     }
 
-    /**
-     * Restaura filiais e contas excluídas a partir do instante da exclusão da
-     * company (heurística de 2 níveis). Toda a cascata compartilha o mesmo
-     * limite, pois contas e filiais foram excluídas juntas no teardown.
-     */
     public function restored(Company $company): void
     {
         $threshold = $this->restoreThresholds[(string) $company->getKey()] ?? $company->updated_at;
+
+        $company->supplierPaymentMethods()->onlyTrashed()
+            ->where('deleted_at', '>=', $threshold)
+            ->restore();
+
+        $company->appropriations()->onlyTrashed()
+            ->where('deleted_at', '>=', $threshold)
+            ->restore();
 
         $company->branches()->onlyTrashed()
             ->where('deleted_at', '>=', $threshold)
             ->get()
             ->each(function (Branch $branch) use ($threshold): void {
                 $branch->restore();
+
+                $branch->costCenters()->onlyTrashed()
+                    ->where('deleted_at', '>=', $threshold)
+                    ->restore();
 
                 $branch->bankAccounts()->onlyTrashed()
                     ->where('deleted_at', '>=', $threshold)
@@ -63,7 +73,11 @@ final class CompanyObserver
 
     public function forceDeleted(Company $company): void
     {
+        $company->supplierPaymentMethods()->withTrashed()->forceDelete();
+        $company->appropriations()->withTrashed()->forceDelete();
+
         $company->branches()->withTrashed()->get()->each(function (Branch $branch): void {
+            $branch->costCenters()->withTrashed()->forceDelete();
             $branch->bankAccounts()->withTrashed()->forceDelete();
         });
 

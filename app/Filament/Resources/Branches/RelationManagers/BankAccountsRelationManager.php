@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Branches\RelationManagers;
 
 use App\Enums\AccountType;
+use App\Models\Bank;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -17,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -33,13 +35,42 @@ final class BankAccountsRelationManager extends RelationManager
     {
         return $schema
             ->components([
+                Select::make('bank_id')
+                    ->label(__('branch_bank_accounts.fields.bank_id'))
+                    ->relationship('bank', 'name')
+                    ->getOptionLabelFromRecordUsing(
+                        fn (Bank $record): string => "{$record->code} — {$record->name}"
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (?string $state, Set $set): void {
+                        if ($state === null) {
+                            return;
+                        }
+
+                        $bank = Bank::query()->find($state);
+
+                        if ($bank === null) {
+                            return;
+                        }
+
+                        $set('bank_code', $bank->code);
+                        $set('bank_name', $bank->name);
+                    }),
+
                 TextInput::make('bank_code')
                     ->label(__('branch_bank_accounts.fields.bank_code'))
+                    ->disabled()
+                    ->dehydrated()
                     ->required()
                     ->maxLength(3),
 
                 TextInput::make('bank_name')
                     ->label(__('branch_bank_accounts.fields.bank_name'))
+                    ->disabled()
+                    ->dehydrated()
                     ->required()
                     ->maxLength(255),
 
@@ -85,8 +116,9 @@ final class BankAccountsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('bank_name')
             ->columns([
-                TextColumn::make('bank_name')
-                    ->label(__('branch_bank_accounts.fields.bank_name'))
+                TextColumn::make('bank.name')
+                    ->label(__('branch_bank_accounts.fields.bank_id'))
+                    ->placeholder(fn ($record) => $record->bank_name)
                     ->searchable()
                     ->sortable(),
 
@@ -132,6 +164,7 @@ final class BankAccountsRelationManager extends RelationManager
                 ]),
             ])
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->with('bank')
                 ->withoutGlobalScopes([SoftDeletingScope::class]));
     }
 }

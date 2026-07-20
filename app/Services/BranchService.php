@@ -10,22 +10,20 @@ use App\Models\Branch;
 final class BranchService
 {
     /**
-     * Bloqueia o soft delete direto de filial que ainda possui contas bancárias.
+     * Soft-deletes a branch after the bank-account guard, cascading cost centers.
      *
-     * IMPORTANTE (DBA): este guard vive apenas na camada de Service — nunca como
-     * evento Eloquent no Model Branch — para não bloquear a cascata de exclusão
-     * de Company (que soft-deleta contas e filiais em lote).
+     * IMPORTANT (DBA): this guard lives only in the Service layer — never as an
+     * Eloquent Model event on Branch — so Company cascade soft-deletes are not blocked.
      */
     public function delete(Branch $branch): void
     {
         $this->ensureDeletable($branch);
 
+        $branch->costCenters()->delete();
         $branch->delete();
     }
 
     /**
-     * Valida se a filial pode ser excluída diretamente (guard de negócio).
-     *
      * @throws BranchException
      */
     public function ensureDeletable(Branch $branch): void

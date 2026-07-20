@@ -7,6 +7,7 @@ return [
     'plural' => 'Bank accounts',
 
     'fields' => [
+        'bank_id' => 'Bank',
         'bank_code' => 'Bank code',
         'bank_name' => 'Bank',
         'agency' => 'Agency',

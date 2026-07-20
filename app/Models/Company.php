@@ -50,6 +50,22 @@ final class Company extends Model
     }
 
     /**
+     * @return HasMany<Appropriation, $this>
+     */
+    public function appropriations(): HasMany
+    {
+        return $this->hasMany(Appropriation::class);
+    }
+
+    /**
+     * @return HasMany<SupplierCompanyPaymentMethod, $this>
+     */
+    public function supplierPaymentMethods(): HasMany
+    {
+        return $this->hasMany(SupplierCompanyPaymentMethod::class);
+    }
+
+    /**
      * @param  Builder<Company>  $query
      * @return Builder<Company>
      */
