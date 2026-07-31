@@ -67,8 +67,11 @@ return [
     'errors' => [
         'branch_not_allowed' => 'Você não tem permissão para criar solicitações nesta filial.',
         'invalid_status_transition' => 'Esta transição de status não é permitida.',
+        'unauthorized_status_transition' => 'Você não tem permissão para alterar o status desta solicitação.',
         'cannot_edit_in_status' => 'Você não pode editar uma solicitação neste status.',
         'appropriation_required' => 'A apropriação é obrigatória para esta empresa.',
+        'appropriation_not_allowed' => 'A apropriação informada não pertence à empresa da filial.',
+        'cost_center_not_allowed' => 'O centro de custo informado não pertence à filial selecionada.',
         'boleto_attachment_required' => 'Anexe pelo menos um arquivo do boleto.',
         'discount_exceeds_gross' => 'O desconto não pode ser maior que o valor bruto.',
         'invalid_net_amount' => 'Os valores informados são inválidos.',

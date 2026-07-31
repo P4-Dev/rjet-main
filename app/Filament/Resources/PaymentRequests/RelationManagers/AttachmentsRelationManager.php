@@ -63,7 +63,7 @@ final class AttachmentsRelationManager extends RelationManager
                 FileUpload::make('upload')
                     ->label(__('attachments.fields.file'))
                     ->disk(fn (): string => (string) config('rjet.attachments.disk'))
-                    ->directory(fn (): string => 'attachments/payment_request')
+                    ->directory(fn (): string => app(AttachmentService::class)->stagingDirectoryFor(Filament::auth()->user()))
                     ->visibility('private')
                     ->maxSize(fn (): int => (int) config('rjet.attachments.max_kilobytes'))
                     ->acceptedFileTypes(config('rjet.attachments.accepted_mime_types'))

@@ -15,7 +15,9 @@ use App\Events\PaymentRequest\PaymentRequestCreated;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
 use App\Exceptions\AttachmentException;
 use App\Exceptions\PaymentRequestException;
+use App\Models\Appropriation;
 use App\Models\Branch;
+use App\Models\CostCenter;
 use App\Models\PaymentRequest;
 use App\Models\PaymentRequestStatusHistory;
 use App\Models\User;
@@ -55,6 +57,7 @@ final class PaymentRequestService
         $resolvedAttachmentCount = $attachmentCount > 0 ? $attachmentCount : count($attachmentPaths);
 
         $this->assertAmounts($data->grossAmount, $data->discountAmount);
+        $this->assertCostCenterForBranch($branchId, $data->costCenterId);
         $this->assertAppropriation($branchId, $data->appropriationId);
         $this->assertBankDetails($data->paymentMethod, $data->bankDetails?->toModelAttributes() ?? []);
         $this->assertBoletoHasAttachment($data->paymentMethod, $resolvedAttachmentCount);
@@ -88,6 +91,7 @@ final class PaymentRequestService
                     $attachmentPaths,
                     $attachmentOriginalNames,
                     $type,
+                    $actor,
                 );
             }
 
@@ -107,6 +111,7 @@ final class PaymentRequestService
     {
         $this->assertEditable($request, $actor);
         $this->assertAmounts($data->grossAmount, $data->discountAmount);
+        $this->assertCostCenterForBranch($request->branch_id, $data->costCenterId);
         $this->assertAppropriation($request->branch_id, $data->appropriationId);
         $this->assertBankDetails($data->paymentMethod, $data->bankDetails?->toModelAttributes() ?? []);
 
@@ -139,6 +144,14 @@ final class PaymentRequestService
         User $actor,
         ?string $notes = null,
     ): PaymentRequest {
+        if (! ($actor->isOperador() || $actor->isAdm())) {
+            throw PaymentRequestException::unauthorizedStatusTransition();
+        }
+
+        if (! $request->isVisibleTo($actor)) {
+            throw PaymentRequestException::unauthorizedStatusTransition();
+        }
+
         $from = $request->status;
 
         if (! $from->canTransitionTo($to)) {
@@ -239,10 +252,52 @@ final class PaymentRequestService
     /**
      * @throws PaymentRequestException
      */
+    public function assertCostCenterForBranch(?string $branchId, ?string $costCenterId): void
+    {
+        if (blank($branchId) || blank($costCenterId)) {
+            throw PaymentRequestException::costCenterNotAllowed();
+        }
+
+        $belongs = CostCenter::query()
+            ->whereKey($costCenterId)
+            ->where('branch_id', $branchId)
+            ->exists();
+
+        if (! $belongs) {
+            throw PaymentRequestException::costCenterNotAllowed();
+        }
+    }
+
+    /**
+     * @throws PaymentRequestException
+     */
     public function assertAppropriation(?string $branchId, ?string $appropriationId): void
     {
         if (PaymentRequest::requiresAppropriationForBranch($branchId) && blank($appropriationId)) {
             throw PaymentRequestException::appropriationRequired();
+        }
+
+        if (blank($appropriationId)) {
+            return;
+        }
+
+        if (blank($branchId)) {
+            throw PaymentRequestException::appropriationNotAllowed();
+        }
+
+        $companyId = Branch::query()->whereKey($branchId)->value('company_id');
+
+        if ($companyId === null) {
+            throw PaymentRequestException::appropriationNotAllowed();
+        }
+
+        $belongs = Appropriation::query()
+            ->whereKey($appropriationId)
+            ->where('company_id', $companyId)
+            ->exists();
+
+        if (! $belongs) {
+            throw PaymentRequestException::appropriationNotAllowed();
         }
     }
 

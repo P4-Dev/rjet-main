@@ -7,15 +7,16 @@ namespace App\Filament\Resources\PaymentRequests\Tables;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
 use App\Filament\Resources\PaymentRequests\Actions\DeletePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\ForceDeletePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\RestorePaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\TransitionStatusAction;
 use App\Models\Company;
+use App\Models\PaymentRequest;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
@@ -195,18 +196,51 @@ final class PaymentRequestsTable
                     EditAction::make(),
                     TransitionStatusAction::make(),
                     DeletePaymentRequestAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    RestorePaymentRequestAction::make(),
+                    ForceDeletePaymentRequestAction::make(),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
+                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false)
+                        ->before(function (DeleteBulkAction $action): void {
+                            $user = Filament::auth()->user();
+
+                            foreach ($action->getSelectedRecords() as $record) {
+                                abort_unless(
+                                    $record instanceof PaymentRequest
+                                        && ($user?->can('delete', $record) ?? false),
+                                    403,
+                                );
+                            }
+                        }),
                     RestoreBulkAction::make()
-                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
+                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false)
+                        ->before(function (RestoreBulkAction $action): void {
+                            $user = Filament::auth()->user();
+
+                            foreach ($action->getSelectedRecords() as $record) {
+                                abort_unless(
+                                    $record instanceof PaymentRequest
+                                        && ($user?->can('restore', $record) ?? false),
+                                    403,
+                                );
+                            }
+                        }),
                     ForceDeleteBulkAction::make()
-                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
+                        ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false)
+                        ->before(function (ForceDeleteBulkAction $action): void {
+                            $user = Filament::auth()->user();
+
+                            foreach ($action->getSelectedRecords() as $record) {
+                                abort_unless(
+                                    $record instanceof PaymentRequest
+                                        && ($user?->can('forceDelete', $record) ?? false),
+                                    403,
+                                );
+                            }
+                        }),
                 ]),
             ]);
     }

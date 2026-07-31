@@ -8,6 +8,7 @@ return [
         'directory' => 'attachments',
         'max_kilobytes' => (int) env('RJET_ATTACHMENTS_MAX_KB', 10240),
         'max_files' => (int) env('RJET_ATTACHMENTS_MAX_FILES', 10),
+        'staging_ttl_hours' => (int) env('RJET_ATTACHMENTS_STAGING_TTL_HOURS', 24),
         'accepted_mime_types' => [
             'application/pdf',
             'image/jpeg',

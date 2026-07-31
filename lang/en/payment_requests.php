@@ -67,8 +67,11 @@ return [
     'errors' => [
         'branch_not_allowed' => 'You are not allowed to create requests for this branch.',
         'invalid_status_transition' => 'This status transition is not allowed.',
+        'unauthorized_status_transition' => 'You are not allowed to change the status of this request.',
         'cannot_edit_in_status' => 'You cannot edit a request in this status.',
         'appropriation_required' => 'Appropriation is required for this company.',
+        'appropriation_not_allowed' => 'The appropriation does not belong to the branch company.',
+        'cost_center_not_allowed' => 'The cost center does not belong to the selected branch.',
         'boleto_attachment_required' => 'Attach at least one boleto file.',
         'discount_exceeds_gross' => 'Discount cannot be greater than the gross amount.',
         'invalid_net_amount' => 'The informed amounts are invalid.',

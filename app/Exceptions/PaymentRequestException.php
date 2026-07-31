@@ -22,6 +22,14 @@ final class PaymentRequestException extends BusinessException
         );
     }
 
+    public static function unauthorizedStatusTransition(): self
+    {
+        return new self(
+            message: 'User is not allowed to transition payment request status.',
+            userMessage: __('payment_requests.errors.unauthorized_status_transition'),
+        );
+    }
+
     public static function cannotEditInStatus(string $status): self
     {
         return new self(
@@ -35,6 +43,22 @@ final class PaymentRequestException extends BusinessException
         return new self(
             message: 'Appropriation is required for this company.',
             userMessage: __('payment_requests.errors.appropriation_required'),
+        );
+    }
+
+    public static function appropriationNotAllowed(): self
+    {
+        return new self(
+            message: 'Appropriation does not belong to the branch company.',
+            userMessage: __('payment_requests.errors.appropriation_not_allowed'),
+        );
+    }
+
+    public static function costCenterNotAllowed(): self
+    {
+        return new self(
+            message: 'Cost center does not belong to the selected branch.',
+            userMessage: __('payment_requests.errors.cost_center_not_allowed'),
         );
     }
 

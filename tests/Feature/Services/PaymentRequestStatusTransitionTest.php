@@ -78,3 +78,15 @@ it('rejects regression from settled', function (): void {
     expect(fn () => $this->service->transitionStatus($settled, PaymentRequestStatus::Launched, $this->actor))
         ->toThrow(PaymentRequestException::class);
 });
+
+it('rejects status transitions by cliente even when the enum allows it', function (): void {
+    $cliente = User::factory()->cliente()->withBranches([$this->request->branch])->create();
+
+    expect(fn () => $this->service->transitionStatus(
+        $this->request,
+        PaymentRequestStatus::Launched,
+        $cliente,
+    ))->toThrow(PaymentRequestException::class);
+
+    expect($this->request->fresh()->status)->toBe(PaymentRequestStatus::Requested);
+});

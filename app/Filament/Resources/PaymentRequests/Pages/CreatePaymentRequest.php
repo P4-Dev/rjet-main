@@ -67,6 +67,7 @@ final class CreatePaymentRequest extends CreateRecord
             $method = PaymentMethod::from((string) $state['payment_method']);
 
             $service->assertAmounts((string) $state['gross_amount'], (string) ($state['discount_amount'] ?? '0'));
+            $service->assertCostCenterForBranch($state['branch_id'] ?? null, $state['cost_center_id'] ?? null);
             $service->assertAppropriation($state['branch_id'] ?? null, $state['appropriation_id'] ?? null);
             $service->assertBankDetails($method, (array) ($state['bankDetails'] ?? []));
             $service->assertBoletoHasAttachment($method, count((array) ($state['attachment_files'] ?? [])));
@@ -97,6 +98,7 @@ final class CreatePaymentRequest extends CreateRecord
                 $this->record->payment_method === PaymentMethod::Boleto
                     ? AttachmentType::Boleto
                     : AttachmentType::Other,
+                Filament::auth()->user(),
             );
 
             app(PaymentRequestService::class)->recordInitialStatus(

@@ -17,6 +17,7 @@ use App\Models\CostCenter;
 use App\Models\PaymentRequest;
 use App\Rules\ValidCpfOrCnpj;
 use App\Rules\ValidDigitableLine;
+use App\Services\AttachmentService;
 use App\Services\PaymentRequestService;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
@@ -369,7 +370,7 @@ final class PaymentRequestForm
                             ->label(__('common.sections.attachments'))
                             ->multiple()
                             ->disk(fn (): string => (string) config('rjet.attachments.disk'))
-                            ->directory('attachments/payment_request')
+                            ->directory(fn (): string => app(AttachmentService::class)->stagingDirectoryFor(Filament::auth()->user()))
                             ->visibility('private')
                             ->maxSize(fn (): int => (int) config('rjet.attachments.max_kilobytes'))
                             ->maxFiles(fn (): int => (int) config('rjet.attachments.max_files'))

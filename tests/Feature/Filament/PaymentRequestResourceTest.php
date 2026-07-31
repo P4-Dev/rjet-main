@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
 use App\Enums\PixKeyType;
 use App\Filament\Resources\PaymentRequests\Pages\CreatePaymentRequest;
+use App\Filament\Resources\PaymentRequests\Pages\EditPaymentRequest;
 use App\Filament\Resources\PaymentRequests\Pages\ListPaymentRequests;
 use App\Filament\Resources\PaymentRequests\Pages\ViewPaymentRequest;
 use App\Filament\Resources\PaymentRequests\RelationManagers\AttachmentsRelationManager;
@@ -141,6 +142,27 @@ describe('authorization', function (): void {
 
         Livewire::test(ListPaymentRequests::class)
             ->assertActionVisible(TestAction::make('delete')->table($request));
+    });
+
+    it('strips forged branch_id from cliente before save', function (): void {
+        $mine = Branch::factory()->create();
+        $theirs = Branch::factory()->create();
+        $cliente = User::factory()->cliente()->withBranches([$mine])->create();
+        $request = PaymentRequest::factory()->forBranch($mine)->requested()->create();
+
+        actingAs($cliente);
+
+        $page = Livewire::test(EditPaymentRequest::class, ['record' => $request->getKey()]);
+
+        $mutated = invade($page->instance())->mutateFormDataBeforeSave([
+            'branch_id' => $theirs->getKey(),
+            'gross_amount' => (string) $request->gross_amount,
+            'discount_amount' => (string) $request->discount_amount,
+            'notes' => 'updated by cliente',
+        ]);
+
+        expect($mutated)->not->toHaveKey('branch_id')
+            ->and($mutated['notes'])->toBe('updated by cliente');
     });
 });
 
@@ -557,6 +579,24 @@ describe('actions', function (): void {
 
         Livewire::test(ViewPaymentRequest::class, ['record' => $request->getKey()])
             ->assertActionHidden('transitionStatus');
+    });
+
+    it('blocks cliente from calling transitionStatus via Livewire', function (): void {
+        $branch = Branch::factory()->create();
+        $request = PaymentRequest::factory()->forBranch($branch)->requested()->create();
+
+        actingAs(User::factory()->cliente()->withBranches([$branch])->create());
+
+        try {
+            Livewire::test(ViewPaymentRequest::class, ['record' => $request->getKey()])
+                ->callAction('transitionStatus', [
+                    'to_status' => PaymentRequestStatus::Launched->value,
+                ]);
+        } catch (Throwable) {
+            // Hidden/unauthorized actions may abort or refuse to mount.
+        }
+
+        expect($request->fresh()->status)->toBe(PaymentRequestStatus::Requested);
     });
 });
 

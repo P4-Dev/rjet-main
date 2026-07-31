@@ -189,8 +189,9 @@ it('creates boleto with attachments in the same transaction', function (): void 
     config(['rjet.attachments.disk' => 'local']);
 
     $actor = User::factory()->create(['role' => UserRole::Adm]);
+    $staging = app(\App\Services\AttachmentService::class)->stagingDirectoryFor($actor);
     $file = \Illuminate\Http\UploadedFile::fake()->create('boleto.pdf', 40, 'application/pdf');
-    $path = $file->store('tmp', 'local');
+    $path = $file->store($staging, 'local');
 
     $data = makePaymentRequestData([
         'payment_method' => PaymentMethod::Boleto,
@@ -215,8 +216,9 @@ it('rolls back create when attachment path fails mime validation', function (): 
     config(['rjet.attachments.disk' => 'local']);
 
     $actor = User::factory()->create(['role' => UserRole::Adm]);
+    $staging = app(\App\Services\AttachmentService::class)->stagingDirectoryFor($actor);
     $file = \Illuminate\Http\UploadedFile::fake()->create('nfe.xml', 10, 'text/xml');
-    $path = $file->store('tmp', 'local');
+    $path = $file->store($staging, 'local');
 
     $data = makePaymentRequestData([
         'payment_method' => PaymentMethod::Boleto,

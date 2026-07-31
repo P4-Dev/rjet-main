@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Exceptions\AttachmentException;
 use App\Models\Attachment;
 use App\Models\PaymentRequest;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -63,12 +64,16 @@ final class AttachmentService
         array $paths,
         array $originalNames = [],
         ?AttachmentType $defaultType = null,
+        ?User $actor = null,
     ): Collection {
         $disk = (string) config('rjet.attachments.disk');
         $attachments = new Collection;
 
         foreach (array_values($paths) as $index => $path) {
+            $submittedPath = $path;
+            $path = $this->assertPathIsSafe($path, $attachable, $actor);
             ['mime' => $mime, 'size' => $size] = $this->assertStoredPathIsAllowed($disk, $path);
+            $path = $this->relocateToAttachableDirectory($disk, $path, $attachable);
             $type = $defaultType;
 
             if (
@@ -86,7 +91,7 @@ final class AttachmentService
                 'type' => $type ?? AttachmentType::Other,
                 'disk' => $disk,
                 'path' => $path,
-                'original_name' => $originalNames[$path] ?? basename($path),
+                'original_name' => $originalNames[$submittedPath] ?? $originalNames[$path] ?? basename($path),
                 'mime_type' => $mime,
                 'size' => $size,
                 'sort_order' => $index,
@@ -111,6 +116,65 @@ final class AttachmentService
         return config('rjet.attachments.directory').'/'.$attachable->getMorphClass().'/'.$attachable->getKey();
     }
 
+    public function stagingDirectoryFor(?User $user): string
+    {
+        $userKey = $user?->getKey() ?? 'anonymous';
+
+        return config('rjet.attachments.directory').'/staging/'.$userKey;
+    }
+
+    /**
+     * Remove expired staging files and unreferenced files under the attachments root.
+     *
+     * @return array{staging_deleted: int, orphan_deleted: int}
+     */
+    public function cleanOrphans(bool $dryRun = false, ?int $stagingTtlHours = null): array
+    {
+        $disk = (string) config('rjet.attachments.disk');
+        $root = (string) config('rjet.attachments.directory');
+        $ttlHours = $stagingTtlHours ?? (int) config('rjet.attachments.staging_ttl_hours', 24);
+        $cutoff = now()->subHours(max(0, $ttlHours))->getTimestamp();
+
+        $stagingDeleted = 0;
+        $orphanDeleted = 0;
+
+        $referenced = Attachment::withTrashed()
+            ->where('disk', $disk)
+            ->pluck('path')
+            ->flip();
+
+        foreach (Storage::disk($disk)->allFiles($root) as $path) {
+            $normalized = str_replace('\\', '/', $path);
+
+            if (str_starts_with($normalized, $root.'/staging/')) {
+                $lastModified = Storage::disk($disk)->lastModified($normalized);
+
+                if ($lastModified <= $cutoff) {
+                    if (! $dryRun) {
+                        Storage::disk($disk)->delete($normalized);
+                    }
+                    $stagingDeleted++;
+                }
+
+                continue;
+            }
+
+            if ($referenced->has($normalized)) {
+                continue;
+            }
+
+            if (! $dryRun) {
+                Storage::disk($disk)->delete($normalized);
+            }
+            $orphanDeleted++;
+        }
+
+        return [
+            'staging_deleted' => $stagingDeleted,
+            'orphan_deleted' => $orphanDeleted,
+        ];
+    }
+
     /**
      * @return array{mime: string, size: int}
      *
@@ -122,12 +186,79 @@ final class AttachmentService
             throw AttachmentException::fileNotFound($path);
         }
 
+        if (Attachment::withTrashed()->where('disk', $disk)->where('path', $path)->exists()) {
+            throw AttachmentException::fileNotFound($path);
+        }
+
         $mime = (string) Storage::disk($disk)->mimeType($path);
         $size = (int) Storage::disk($disk)->size($path);
 
         $this->assertMimeAndSize($mime, $size);
 
         return ['mime' => $mime, 'size' => $size];
+    }
+
+    /**
+     * @throws AttachmentException
+     */
+    private function assertPathIsSafe(string $path, Model $attachable, ?User $actor = null): string
+    {
+        $normalized = str_replace('\\', '/', $path);
+
+        if (
+            $normalized === ''
+            || str_contains($normalized, '..')
+            || str_starts_with($normalized, '/')
+            || preg_match('/^[a-zA-Z]:/', $normalized) === 1
+        ) {
+            throw AttachmentException::fileNotFound($path);
+        }
+
+        $directory = (string) config('rjet.attachments.directory');
+
+        if (! str_starts_with($normalized, $directory.'/')) {
+            throw AttachmentException::fileNotFound($path);
+        }
+
+        $attachableDirectory = $this->directoryFor($attachable).'/';
+
+        if (str_starts_with($normalized, $attachableDirectory)) {
+            return $normalized;
+        }
+
+        $user = $actor ?? auth()->user();
+        $stagingDirectory = $this->stagingDirectoryFor($user instanceof User ? $user : null).'/';
+
+        if ($user instanceof User && str_starts_with($normalized, $stagingDirectory)) {
+            return $normalized;
+        }
+
+        throw AttachmentException::fileNotFound($path);
+    }
+
+    /**
+     * @throws AttachmentException
+     */
+    private function relocateToAttachableDirectory(string $disk, string $path, Model $attachable): string
+    {
+        $targetDirectory = $this->directoryFor($attachable);
+
+        if (str_starts_with($path, $targetDirectory.'/')) {
+            return $path;
+        }
+
+        $filename = basename($path);
+        $targetPath = $targetDirectory.'/'.$filename;
+
+        if (Storage::disk($disk)->exists($targetPath)) {
+            $targetPath = $targetDirectory.'/'.uniqid('att_', true).'_'.$filename;
+        }
+
+        if (! Storage::disk($disk)->move($path, $targetPath)) {
+            throw AttachmentException::fileNotFound($path);
+        }
+
+        return $targetPath;
     }
 
     /**

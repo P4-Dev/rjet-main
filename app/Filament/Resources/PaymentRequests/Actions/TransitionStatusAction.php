@@ -48,11 +48,18 @@ final class TransitionStatusAction
                     ->maxLength(1000),
             ])
             ->action(function (PaymentRequest $record, array $data, Action $action): void {
+                $user = Filament::auth()->user();
+
+                abort_unless(
+                    $user !== null && $user->can('transitionStatus', $record),
+                    403,
+                );
+
                 try {
                     app(PaymentRequestService::class)->transitionStatus(
                         $record,
                         PaymentRequestStatus::from($data['to_status']),
-                        Filament::auth()->user(),
+                        $user,
                         $data['notes'] ?? null,
                     );
                 } catch (BusinessException $exception) {
