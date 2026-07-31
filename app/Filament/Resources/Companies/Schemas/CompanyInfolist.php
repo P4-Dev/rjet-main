@@ -30,6 +30,10 @@ final class CompanyInfolist
                         IconEntry::make('is_active')
                             ->label(__('common.fields.is_active'))
                             ->boolean(),
+
+                        IconEntry::make('is_appropriation_required')
+                            ->label(__('companies.fields.is_appropriation_required'))
+                            ->boolean(),
                     ])
                     ->columns(2),
 

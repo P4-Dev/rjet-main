@@ -31,5 +31,9 @@ final class BranchService
         if ($branch->bankAccounts()->exists()) {
             throw BranchException::cannotDeleteWithBankAccounts((string) $branch->getKey());
         }
+
+        if ($branch->paymentRequests()->exists()) {
+            throw BranchException::cannotDeleteWithPaymentRequests((string) $branch->getKey());
+        }
     }
 }

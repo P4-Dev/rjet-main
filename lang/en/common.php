@@ -13,6 +13,8 @@ return [
         'is_default' => 'Default',
         'status' => 'Status',
         'type' => 'Type',
+        'notes' => 'Notes',
+        'file' => 'File',
         'created_at' => 'Created at',
         'updated_at' => 'Updated at',
         'deleted_at' => 'Deleted at',
@@ -27,6 +29,7 @@ return [
         'view' => 'View',
         'save' => 'Save',
         'cancel' => 'Cancel',
+        'confirm' => 'Confirm',
         'activate' => 'Activate',
         'deactivate' => 'Deactivate',
     ],
@@ -34,6 +37,8 @@ return [
     'sections' => [
         'general' => 'General Information',
         'audit' => 'Audit',
+        'attachments' => 'Attachments',
+        'history' => 'History',
     ],
 
     'messages' => [

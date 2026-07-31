@@ -50,6 +50,14 @@ final class Bank extends Model
     }
 
     /**
+     * @return HasMany<PaymentRequestBankDetails, $this>
+     */
+    public function paymentRequestBankDetails(): HasMany
+    {
+        return $this->hasMany(PaymentRequestBankDetails::class);
+    }
+
+    /**
      * @param  Builder<Bank>  $query
      * @return Builder<Bank>
      */

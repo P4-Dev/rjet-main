@@ -24,5 +24,6 @@ return [
 
     'errors' => [
         'cannot_delete_with_bank_accounts' => 'Não é possível excluir uma filial que ainda possui contas bancárias. Remova as contas antes de excluir a filial.',
+        'cannot_delete_with_payment_requests' => 'Não é possível excluir a filial enquanto houver solicitações de pagamento vinculadas.',
     ],
 ];

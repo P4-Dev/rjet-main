@@ -66,6 +66,14 @@ final class Branch extends Model
     }
 
     /**
+     * @return HasMany<PaymentRequest, $this>
+     */
+    public function paymentRequests(): HasMany
+    {
+        return $this->hasMany(PaymentRequest::class);
+    }
+
+    /**
      * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany

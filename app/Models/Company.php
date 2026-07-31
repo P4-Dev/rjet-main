@@ -29,6 +29,7 @@ final class Company extends Model
         'legal_name',
         'document',
         'is_active',
+        'is_appropriation_required',
     ];
 
     /**
@@ -38,6 +39,7 @@ final class Company extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_appropriation_required' => 'boolean',
         ];
     }
 

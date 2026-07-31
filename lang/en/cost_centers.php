@@ -19,4 +19,8 @@ return [
     'sections' => [
         'cost_center_info' => 'Cost center details',
     ],
+
+    'errors' => [
+        'cannot_delete_with_payment_requests' => 'Cannot delete the cost center while linked payment requests exist.',
+    ],
 ];

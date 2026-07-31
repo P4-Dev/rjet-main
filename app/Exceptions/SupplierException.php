@@ -21,4 +21,12 @@ final class SupplierException extends BusinessException
             userMessage: __('suppliers.errors.duplicate_document'),
         );
     }
+
+    public static function cannotDeleteWithPaymentRequests(string $id): self
+    {
+        return new self(
+            message: "Cannot delete supplier {$id}: it still has payment requests.",
+            userMessage: __('suppliers.errors.cannot_delete_with_payment_requests'),
+        );
+    }
 }

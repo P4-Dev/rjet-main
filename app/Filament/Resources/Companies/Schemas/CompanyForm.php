@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Companies\Schemas;
 
 use App\Rules\ValidCnpj;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -37,6 +38,12 @@ final class CompanyForm
                         Toggle::make('is_active')
                             ->label(__('common.fields.is_active'))
                             ->default(true),
+
+                        Toggle::make('is_appropriation_required')
+                            ->label(__('companies.fields.is_appropriation_required'))
+                            ->helperText(__('companies.hints.is_appropriation_required'))
+                            ->default(false)
+                            ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
                     ])
                     ->columns(2),
             ]);

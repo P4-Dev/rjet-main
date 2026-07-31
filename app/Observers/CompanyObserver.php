@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Models\Attachment;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\PaymentRequest;
 
 final class CompanyObserver
 {
@@ -17,14 +19,22 @@ final class CompanyObserver
     private array $restoreThresholds = [];
 
     /**
-     * Soft-delete order (bulk via query — never per-row Model events that trip guards):
-     * 1) supplier payment overrides
-     * 2) appropriations
-     * 3) per branch: cost centers, then bank accounts
-     * 4) branches
+     * Soft-delete order:
+     * 1) payment requests (Eloquent — cascade bankDetails + attachments)
+     * 2) supplier payment overrides
+     * 3) appropriations
+     * 4) per branch: cost centers, then bank accounts
+     * 5) branches
      */
     public function deleted(Company $company): void
     {
+        $branchIds = $company->branches()->pluck('id');
+
+        PaymentRequest::query()
+            ->whereIn('branch_id', $branchIds)
+            ->get()
+            ->each->delete();
+
         $company->supplierPaymentMethods()->delete();
         $company->appropriations()->delete();
 
@@ -44,6 +54,13 @@ final class CompanyObserver
     public function restored(Company $company): void
     {
         $threshold = $this->restoreThresholds[(string) $company->getKey()] ?? $company->updated_at;
+        $branchIds = $company->branches()->withTrashed()->pluck('id');
+
+        PaymentRequest::onlyTrashed()
+            ->whereIn('branch_id', $branchIds)
+            ->where('deleted_at', '>=', $threshold)
+            ->get()
+            ->each->restore();
 
         $company->supplierPaymentMethods()->onlyTrashed()
             ->where('deleted_at', '>=', $threshold)
@@ -71,16 +88,39 @@ final class CompanyObserver
         unset($this->restoreThresholds[(string) $company->getKey()]);
     }
 
-    public function forceDeleted(Company $company): void
+    /**
+     * Must run BEFORE the company row is hard-deleted: FK cascade would otherwise
+     * wipe branches/payment_requests without Eloquent events, orphaning morph attachments.
+     */
+    public function forceDeleting(Company $company): void
     {
+        $branchIds = Branch::withTrashed()
+            ->where('company_id', $company->getKey())
+            ->pluck('id');
+
+        PaymentRequest::withTrashed()
+            ->whereIn('branch_id', $branchIds)
+            ->get()
+            ->each(function (PaymentRequest $paymentRequest): void {
+                Attachment::withTrashed()
+                    ->where('attachable_type', $paymentRequest->getMorphClass())
+                    ->where('attachable_id', $paymentRequest->getKey())
+                    ->get()
+                    ->each(fn (Attachment $attachment): bool => $attachment->forceDelete());
+
+                $paymentRequest->forceDelete();
+            });
+
         $company->supplierPaymentMethods()->withTrashed()->forceDelete();
         $company->appropriations()->withTrashed()->forceDelete();
 
-        $company->branches()->withTrashed()->get()->each(function (Branch $branch): void {
-            $branch->costCenters()->withTrashed()->forceDelete();
-            $branch->bankAccounts()->withTrashed()->forceDelete();
-        });
-
-        $company->branches()->withTrashed()->forceDelete();
+        Branch::withTrashed()
+            ->where('company_id', $company->getKey())
+            ->get()
+            ->each(function (Branch $branch): void {
+                $branch->costCenters()->withTrashed()->forceDelete();
+                $branch->bankAccounts()->withTrashed()->forceDelete();
+                $branch->forceDelete();
+            });
     }
 }

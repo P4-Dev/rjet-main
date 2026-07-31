@@ -28,5 +28,6 @@ return [
     'errors' => [
         'document_inconsistent_with_person_type' => 'The document is inconsistent with the person type.',
         'duplicate_document' => 'A supplier with this document already exists.',
+        'cannot_delete_with_payment_requests' => 'Cannot delete the supplier while linked payment requests exist.',
     ],
 ];

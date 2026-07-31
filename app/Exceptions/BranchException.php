@@ -13,4 +13,12 @@ final class BranchException extends BusinessException
             userMessage: __('branches.errors.cannot_delete_with_bank_accounts'),
         );
     }
+
+    public static function cannotDeleteWithPaymentRequests(string $id): self
+    {
+        return new self(
+            message: "Cannot delete branch {$id}: it still has payment requests.",
+            userMessage: __('branches.errors.cannot_delete_with_payment_requests'),
+        );
+    }
 }

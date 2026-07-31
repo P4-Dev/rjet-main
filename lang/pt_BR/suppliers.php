@@ -28,5 +28,6 @@ return [
     'errors' => [
         'document_inconsistent_with_person_type' => 'O documento informado é inconsistente com o tipo de pessoa.',
         'duplicate_document' => 'Já existe um fornecedor com este documento.',
+        'cannot_delete_with_payment_requests' => 'Não é possível excluir o fornecedor enquanto houver solicitações de pagamento vinculadas.',
     ],
 ];

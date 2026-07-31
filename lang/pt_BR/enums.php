@@ -35,4 +35,27 @@ return [
         'billing' => 'Financeiro',
         'technical' => 'Técnico',
     ],
+
+    'payment_request_status' => [
+        'requested' => 'Solicitada',
+        'launched' => 'Lançada',
+        'settled' => 'Liquidada',
+    ],
+
+    'deposit_type' => [
+        'pix' => 'Pix',
+        'transfer' => 'Transferência (TED/DOC/conta)',
+    ],
+
+    'pix_key_type' => [
+        'random' => 'Chave aleatória',
+        'cpf' => 'CPF',
+        'phone' => 'Telefone',
+        'email' => 'E-mail',
+    ],
+
+    'attachment_type' => [
+        'boleto' => 'Boleto',
+        'other' => 'Outro',
+    ],
 ];

@@ -14,6 +14,14 @@ final class BankException extends BusinessException
         );
     }
 
+    public static function cannotDeleteWithPaymentRequestBankDetails(string $id): self
+    {
+        return new self(
+            message: "Cannot delete bank {$id}: it still has payment request bank details.",
+            userMessage: __('banks.errors.cannot_delete_with_payment_request_bank_details'),
+        );
+    }
+
     public static function codeAlreadyExists(string $code): self
     {
         return new self(

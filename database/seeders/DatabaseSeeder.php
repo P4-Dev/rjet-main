@@ -28,6 +28,7 @@ final class DatabaseSeeder extends Seeder
         if (app()->environment('local', 'testing')) {
             $this->call([
                 DevelopmentSeeder::class,
+                PaymentRequestSeeder::class,
             ]);
         }
     }

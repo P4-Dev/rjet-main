@@ -13,6 +13,8 @@ return [
         'is_default' => 'Padrão',
         'status' => 'Status',
         'type' => 'Tipo',
+        'notes' => 'Observações',
+        'file' => 'Arquivo',
         'created_at' => 'Criado em',
         'updated_at' => 'Atualizado em',
         'deleted_at' => 'Excluído em',
@@ -27,6 +29,7 @@ return [
         'view' => 'Visualizar',
         'save' => 'Salvar',
         'cancel' => 'Cancelar',
+        'confirm' => 'Confirmar',
         'activate' => 'Ativar',
         'deactivate' => 'Desativar',
     ],
@@ -34,6 +37,8 @@ return [
     'sections' => [
         'general' => 'Informações Gerais',
         'audit' => 'Auditoria',
+        'attachments' => 'Anexos',
+        'history' => 'Histórico',
     ],
 
     'messages' => [

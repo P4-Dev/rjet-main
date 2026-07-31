@@ -24,6 +24,7 @@ final class CompanyFactory extends Factory
             'legal_name' => fake()->company().' LTDA',
             'document' => fake()->unique()->cnpj(false),
             'is_active' => true,
+            'is_appropriation_required' => false,
         ];
     }
 
@@ -31,6 +32,13 @@ final class CompanyFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'is_active' => false,
+        ]);
+    }
+
+    public function requiresAppropriation(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_appropriation_required' => true,
         ]);
     }
 

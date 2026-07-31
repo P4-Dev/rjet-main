@@ -18,4 +18,8 @@ return [
     'sections' => [
         'appropriation_info' => 'Dados da apropriação',
     ],
+
+    'errors' => [
+        'cannot_delete_with_payment_requests' => 'Não é possível excluir a apropriação enquanto houver solicitações de pagamento vinculadas.',
+    ],
 ];

@@ -46,6 +46,11 @@ final class CompaniesTable
                     ->boolean()
                     ->sortable(),
 
+                IconColumn::make('is_appropriation_required')
+                    ->label(__('companies.fields.is_appropriation_required'))
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('created_at')
                     ->label(__('common.fields.created_at'))
                     ->dateTime('d/m/Y H:i')
@@ -56,6 +61,8 @@ final class CompaniesTable
                 TrashedFilter::make(),
                 TernaryFilter::make('is_active')
                     ->label(__('common.fields.is_active')),
+                TernaryFilter::make('is_appropriation_required')
+                    ->label(__('companies.fields.is_appropriation_required')),
             ])
             ->recordActions([
                 ActionGroup::make([

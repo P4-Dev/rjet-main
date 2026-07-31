@@ -35,4 +35,27 @@ return [
         'billing' => 'Billing',
         'technical' => 'Technical',
     ],
+
+    'payment_request_status' => [
+        'requested' => 'Requested',
+        'launched' => 'Launched',
+        'settled' => 'Settled',
+    ],
+
+    'deposit_type' => [
+        'pix' => 'Pix',
+        'transfer' => 'Bank transfer (wire/account)',
+    ],
+
+    'pix_key_type' => [
+        'random' => 'Random key',
+        'cpf' => 'Tax ID (CPF)',
+        'phone' => 'Phone',
+        'email' => 'Email',
+    ],
+
+    'attachment_type' => [
+        'boleto' => 'Bank slip',
+        'other' => 'Other',
+    ],
 ];

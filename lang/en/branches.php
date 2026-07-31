@@ -24,5 +24,6 @@ return [
 
     'errors' => [
         'cannot_delete_with_bank_accounts' => 'A branch that still has bank accounts cannot be deleted. Remove the accounts before deleting the branch.',
+        'cannot_delete_with_payment_requests' => 'Cannot delete the branch while linked payment requests exist.',
     ],
 ];

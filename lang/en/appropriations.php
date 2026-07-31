@@ -18,4 +18,8 @@ return [
     'sections' => [
         'appropriation_info' => 'Appropriation details',
     ],
+
+    'errors' => [
+        'cannot_delete_with_payment_requests' => 'Cannot delete the appropriation while linked payment requests exist.',
+    ],
 ];

@@ -19,4 +19,8 @@ return [
     'sections' => [
         'cost_center_info' => 'Dados do centro de custo',
     ],
+
+    'errors' => [
+        'cannot_delete_with_payment_requests' => 'Não é possível excluir o centro de custo enquanto houver solicitações de pagamento vinculadas.',
+    ],
 ];

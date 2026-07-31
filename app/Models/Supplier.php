@@ -60,6 +60,14 @@ final class Supplier extends Model
         return $this->hasMany(SupplierCompanyPaymentMethod::class);
     }
 
+    /**
+     * @return HasMany<PaymentRequest, $this>
+     */
+    public function paymentRequests(): HasMany
+    {
+        return $this->hasMany(PaymentRequest::class);
+    }
+
     public function paymentMethodFor(Company $company): PaymentMethod
     {
         $override = $this->companyPaymentMethods()

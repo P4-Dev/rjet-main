@@ -46,7 +46,19 @@ final class SupplierService
 
     public function delete(Supplier $supplier): void
     {
+        $this->ensureDeletable($supplier);
+
         $supplier->delete();
+    }
+
+    /**
+     * @throws SupplierException
+     */
+    public function ensureDeletable(Supplier $supplier): void
+    {
+        if ($supplier->paymentRequests()->exists()) {
+            throw SupplierException::cannotDeleteWithPaymentRequests((string) $supplier->getKey());
+        }
     }
 
     /**
