@@ -553,9 +553,15 @@ describe('actions', function (): void {
     });
 
     it('transitions requested to launched and creates history', function (): void {
-        actingAs(User::factory()->operador()->create());
+        $operador = User::factory()->operador()->approver()->create();
+        actingAs($operador);
 
-        $request = PaymentRequest::factory()->requested()->create();
+        $request = PaymentRequest::factory()->depositPix()->requested()->create();
+        \App\Models\Approval::factory()
+            ->approved()
+            ->forPaymentRequest($request)
+            ->forApprover($operador)
+            ->create();
 
         Livewire::test(ViewPaymentRequest::class, ['record' => $request->getKey()])
             ->callAction('transitionStatus', [

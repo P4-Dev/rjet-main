@@ -13,6 +13,7 @@ use App\Enums\PaymentRequestStatus;
 use App\Enums\PixKeyType;
 use App\Events\PaymentRequest\PaymentRequestCreated;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
+use App\Exceptions\ApprovalException;
 use App\Exceptions\AttachmentException;
 use App\Exceptions\PaymentRequestException;
 use App\Models\Appropriation;
@@ -72,6 +73,13 @@ final class PaymentRequestService
 
             /** @var PaymentRequest $paymentRequest */
             $paymentRequest = PaymentRequest::query()->create($attributes);
+
+            if ($paymentRequest->created_by === null) {
+                $paymentRequest->forceFill([
+                    'created_by' => $actor->getKey(),
+                    'updated_by' => $actor->getKey(),
+                ])->saveQuietly();
+            }
 
             if ($data->bankDetails !== null) {
                 $paymentRequest->bankDetails()->create($data->bankDetails->toModelAttributes());
@@ -156,6 +164,10 @@ final class PaymentRequestService
 
         if (! $from->canTransitionTo($to)) {
             throw PaymentRequestException::invalidStatusTransition($from->value, $to->value);
+        }
+
+        if ($to === PaymentRequestStatus::Launched && ! $request->hasApprovedForLaunch()) {
+            throw ApprovalException::approvalRequired();
         }
 
         $paymentRequest = DB::transaction(function () use ($request, $from, $to, $actor, $notes): PaymentRequest {

@@ -21,4 +21,12 @@ final class UserException extends BusinessException
             userMessage: __('users.errors.cannot_delete_last_admin'),
         );
     }
+
+    public static function cannotDeleteWithPendingApprovals(): self
+    {
+        return new self(
+            message: 'Cannot delete user with pending approvals or active approval rules.',
+            userMessage: __('users.errors.cannot_delete_with_pending_approvals'),
+        );
+    }
 }

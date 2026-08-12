@@ -58,4 +58,10 @@ return [
         'boleto' => 'Boleto',
         'other' => 'Outro',
     ],
+
+    'approval_status' => [
+        'pending' => 'Pendente',
+        'approved' => 'Aprovada',
+        'rejected' => 'Rejeitada',
+    ],
 ];

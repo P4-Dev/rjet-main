@@ -6,6 +6,8 @@ namespace Database\Factories;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
+use App\Models\Approval;
+use App\Models\ApprovalRule;
 use App\Models\Appropriation;
 use App\Models\Attachment;
 use App\Models\Branch;
@@ -14,6 +16,7 @@ use App\Models\CostCenter;
 use App\Models\PaymentRequest;
 use App\Models\PaymentRequestBankDetails;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -121,6 +124,51 @@ final class PaymentRequestFactory extends Factory
         return $this->afterCreating(function (PaymentRequest $request): void {
             Attachment::factory()->boleto()->for($request, 'attachable')->create();
             $request->forceFill(['has_attachments' => true])->saveQuietly();
+        });
+    }
+
+    public function awaitingApproval(): static
+    {
+        return $this->afterCreating(function (PaymentRequest $request): void {
+            $approver = User::factory()->operador()->approver()->create();
+            $rule = ApprovalRule::factory()
+                ->forBranch($request->branch)
+                ->forApprover($approver)
+                ->range(0, null)
+                ->create();
+
+            Approval::factory()
+                ->pending()
+                ->forPaymentRequest($request)
+                ->forApprover($approver)
+                ->state(['approval_rule_id' => $rule->getKey()])
+                ->create();
+        });
+    }
+
+    public function returned(): static
+    {
+        return $this->afterCreating(function (PaymentRequest $request): void {
+            $approver = User::factory()->operador()->approver()->create();
+
+            Approval::factory()
+                ->rejected()
+                ->forPaymentRequest($request)
+                ->forApprover($approver)
+                ->create();
+        });
+    }
+
+    public function approvedPendingLaunch(): static
+    {
+        return $this->afterCreating(function (PaymentRequest $request): void {
+            $approver = User::factory()->adm()->approver()->create();
+
+            Approval::factory()
+                ->approved()
+                ->forPaymentRequest($request)
+                ->forApprover($approver)
+                ->create();
         });
     }
 

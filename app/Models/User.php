@@ -13,6 +13,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -77,6 +78,22 @@ final class User extends Authenticatable implements FilamentUser
     public function defaultBranch(): BelongsToMany
     {
         return $this->branches()->wherePivot('is_default', true);
+    }
+
+    /**
+     * @return HasMany<ApprovalRule, $this>
+     */
+    public function approvalRules(): HasMany
+    {
+        return $this->hasMany(ApprovalRule::class, 'approver_user_id');
+    }
+
+    /**
+     * @return HasMany<Approval, $this>
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(Approval::class, 'approver_user_id');
     }
 
     /**

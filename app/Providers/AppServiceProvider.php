@@ -10,6 +10,8 @@ use App\Integrations\Ocr\BoletoOcrClient;
 use App\Integrations\Ocr\LocalBoletoOcrClient;
 use App\Integrations\Ocr\NullBoletoOcrClient;
 use App\Listeners\PaymentRequest\LogPaymentRequestActivity;
+use App\Models\Approval;
+use App\Models\ApprovalRule;
 use App\Models\Appropriation;
 use App\Models\Attachment;
 use App\Models\Bank;
@@ -22,6 +24,8 @@ use App\Models\PaymentRequestStatusHistory;
 use App\Models\Supplier;
 use App\Models\SupplierCompanyPaymentMethod;
 use App\Models\User;
+use App\Policies\ApprovalPolicy;
+use App\Policies\ApprovalRulePolicy;
 use App\Policies\AppropriationPolicy;
 use App\Policies\AttachmentPolicy;
 use App\Policies\BankPolicy;
@@ -58,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
         PaymentRequest::class => PaymentRequestPolicy::class,
         Attachment::class => AttachmentPolicy::class,
         PaymentRequestStatusHistory::class => PaymentRequestStatusHistoryPolicy::class,
+        ApprovalRule::class => ApprovalRulePolicy::class,
+        Approval::class => ApprovalPolicy::class,
     ];
 
     public function register(): void
@@ -75,6 +81,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'supplier' => Supplier::class,
             'payment_request' => PaymentRequest::class,
+            'user' => User::class,
         ]);
 
         foreach (self::POLICIES as $model => $policy) {
@@ -83,5 +90,6 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(PaymentRequestCreated::class, [LogPaymentRequestActivity::class, 'handleCreated']);
         Event::listen(PaymentRequestStatusChanged::class, [LogPaymentRequestActivity::class, 'handleStatusChanged']);
+        // Approval / PaymentRequest notification listeners are auto-discovered via handle().
     }
 }

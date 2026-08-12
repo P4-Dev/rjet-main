@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\PaymentRequests\Tables;
 
+use App\Enums\ApprovalStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
+use App\Filament\Resources\PaymentRequests\Actions\ApprovePaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\DeletePaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\ForceDeletePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\RejectPaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\RestorePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\ResubmitForApprovalAction;
+use App\Filament\Resources\PaymentRequests\Actions\SendForApprovalAction;
 use App\Filament\Resources\PaymentRequests\Actions\TransitionStatusAction;
 use App\Models\Company;
 use App\Models\PaymentRequest;
@@ -37,7 +42,14 @@ final class PaymentRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['branch.company', 'supplier', 'costCenter']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with([
+                'branch.company',
+                'supplier',
+                'costCenter',
+                'approvals',
+                'bankDetails',
+                'attachments',
+            ]))
             ->defaultSort('created_at', 'desc')
             ->defaultPaginationPageOption(15)
             ->striped()
@@ -66,6 +78,19 @@ final class PaymentRequestsTable
                     ->label(__('common.fields.status'))
                     ->badge()
                     ->sortable(),
+
+                TextColumn::make('approval_state')
+                    ->label(__('payment_requests.fields.approval_state'))
+                    ->badge()
+                    ->state(fn (PaymentRequest $record): string => $record->approvalState())
+                    ->formatStateUsing(fn (string $state): string => __("payment_requests.approval_states.{$state}"))
+                    ->color(fn (string $state): string => match ($state) {
+                        'awaiting' => 'warning',
+                        'returned' => 'danger',
+                        'approved_ready' => 'success',
+                        'no_rule' => 'gray',
+                        default => 'gray',
+                    }),
 
                 TextColumn::make('payment_method')
                     ->label(__('payment_requests.fields.payment_method'))
@@ -105,6 +130,36 @@ final class PaymentRequestsTable
                     ->label(__('common.fields.status'))
                     ->options(PaymentRequestStatus::class)
                     ->multiple(),
+
+                Filter::make('awaiting_my_approval')
+                    ->label(__('payment_requests.filters.awaiting_my_approval'))
+                    ->query(function (Builder $query): Builder {
+                        $user = Filament::auth()->user();
+
+                        return $user !== null
+                            ? $query->awaitingApprovalFor($user)
+                            : $query->whereRaw('1 = 0');
+                    })
+                    ->visible(fn (): bool => Filament::auth()->user()?->canApprove() ?? false),
+
+                SelectFilter::make('approval_status')
+                    ->label(__('payment_requests.filters.approval_status'))
+                    ->options(ApprovalStatus::class)
+                    ->query(function (Builder $query, array $data): Builder {
+                        $value = $data['value'] ?? null;
+
+                        if (blank($value)) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('approvals', function (Builder $q) use ($value): void {
+                            $q->where('status', $value)
+                                ->whereRaw('approvals.assigned_at = (
+                                    SELECT MAX(a2.assigned_at) FROM approvals a2
+                                    WHERE a2.payment_request_id = payment_requests.id
+                                )');
+                        });
+                    }),
 
                 SelectFilter::make('payment_method')
                     ->label(__('payment_requests.fields.payment_method'))
@@ -194,6 +249,10 @@ final class PaymentRequestsTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
+                    ApprovePaymentRequestAction::make(),
+                    RejectPaymentRequestAction::make(),
+                    ResubmitForApprovalAction::make(),
+                    SendForApprovalAction::make(),
                     TransitionStatusAction::make(),
                     DeletePaymentRequestAction::make(),
                     RestorePaymentRequestAction::make(),

@@ -44,6 +44,18 @@ final class CompanyForm
                             ->helperText(__('companies.hints.is_appropriation_required'))
                             ->default(false)
                             ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
+
+                        TextInput::make('approval_sla_business_days')
+                            ->label(__('companies.fields.approval_sla_business_days'))
+                            ->numeric()
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(365)
+                            ->default(2)
+                            ->suffix(__('companies.suffixes.business_days'))
+                            ->helperText(__('companies.hints.approval_sla_business_days'))
+                            ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false)
+                            ->required(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
                     ])
                     ->columns(2),
             ]);

@@ -25,6 +25,7 @@ final class CompanyFactory extends Factory
             'document' => fake()->unique()->cnpj(false),
             'is_active' => true,
             'is_appropriation_required' => false,
+            'approval_sla_business_days' => 2,
         ];
     }
 
@@ -39,6 +40,13 @@ final class CompanyFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'is_appropriation_required' => true,
+        ]);
+    }
+
+    public function withApprovalSla(int $days = 2): static
+    {
+        return $this->state(fn (): array => [
+            'approval_sla_business_days' => $days,
         ]);
     }
 

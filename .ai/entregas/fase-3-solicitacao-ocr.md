@@ -215,7 +215,7 @@ docker compose exec app php artisan attachments:clean-orphans --hours=48
 
 - **Agendamento do comando `attachments:clean-orphans`:** implementado, mas agendamento em `routes/console.php` / cron de produção deve ser configurado pela operação (não bloqueante para go-live funcional).
 - **OCR heurístico:** extração depende de PDF com texto selecionável; boletos escaneados ou layout atípico exigem revisão manual (comportamento esperado).
-- **Workflow F4:** transições atuais são manuais Operador/Adm; alçadas de aprovação alterarão regras de `canTransitionTo` sem mudança estrutural de schema.
+- **Workflow F4:** ~~transições atuais são manuais Operador/Adm; alçadas de aprovação alterarão regras de `canTransitionTo` sem mudança estrutural de schema.~~ **Entregue** — ver [`.ai/entregas/fase-4-workflow-alcadas.md`](fase-4-workflow-alcadas.md) (gate `hasApprovedForLaunch` sem alterar o enum de status).
 
 Nenhum bloqueante conhecido para uso interno via painel Filament.
 

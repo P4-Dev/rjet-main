@@ -2,28 +2,34 @@
 
 declare(strict_types=1);
 
+use App\DTOs\PaymentRequestBankDetailsData;
+use App\DTOs\PaymentRequestData;
 use App\Enums\DepositType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
 use App\Enums\PixKeyType;
-use App\Enums\UserRole;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
 use App\Exceptions\PaymentRequestException;
-use App\Models\User;
-use App\Services\PaymentRequestService;
-use App\DTOs\PaymentRequestBankDetailsData;
-use App\DTOs\PaymentRequestData;
+use App\Models\Approval;
+use App\Models\ApprovalRule;
 use App\Models\Branch;
 use App\Models\CostCenter;
 use App\Models\Supplier;
+use App\Models\User;
+use App\Services\ApprovalService;
+use App\Services\PaymentRequestService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function (): void {
     $this->service = app(PaymentRequestService::class);
-    $this->actor = User::factory()->adm()->create();
+    $this->actor = User::factory()->adm()->approver()->create();
 
     $branch = Branch::factory()->create();
+    $branch->company->update(['approval_sla_business_days' => 2]);
+    $approver = User::factory()->operador()->approver()->create();
+    ApprovalRule::factory()->forBranch($branch)->forApprover($approver)->range(0, null)->create();
+
     $this->request = $this->service->create(new PaymentRequestData(
         branchId: (string) $branch->getKey(),
         supplierId: (string) Supplier::factory()->create()->getKey(),
@@ -39,6 +45,10 @@ beforeEach(function (): void {
             pixKey: 'a@b.com',
         ),
     ), $this->actor);
+
+    $pending = $this->request->fresh()->currentPendingApproval();
+    app(ApprovalService::class)->approve($pending, $approver);
+    $this->request = $this->request->fresh();
 });
 
 it('transitions requested to launched and records history', function (): void {

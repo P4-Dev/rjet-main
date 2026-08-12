@@ -6,9 +6,13 @@ namespace App\Filament\Resources\PaymentRequests\Pages;
 
 use App\Enums\PaymentMethod;
 use App\Exceptions\BusinessException;
+use App\Filament\Resources\PaymentRequests\Actions\ApprovePaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\DeletePaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\ForceDeletePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\RejectPaymentRequestAction;
 use App\Filament\Resources\PaymentRequests\Actions\RestorePaymentRequestAction;
+use App\Filament\Resources\PaymentRequests\Actions\ResubmitForApprovalAction;
+use App\Filament\Resources\PaymentRequests\Actions\SendForApprovalAction;
 use App\Filament\Resources\PaymentRequests\Actions\TransitionStatusAction;
 use App\Filament\Resources\PaymentRequests\PaymentRequestResource;
 use App\Services\PaymentRequestService;
@@ -28,6 +32,10 @@ final class EditPaymentRequest extends EditRecord
     {
         return [
             ViewAction::make(),
+            ApprovePaymentRequestAction::make(),
+            RejectPaymentRequestAction::make(),
+            ResubmitForApprovalAction::make(),
+            SendForApprovalAction::make(),
             TransitionStatusAction::make(),
             DeletePaymentRequestAction::make(),
             RestorePaymentRequestAction::make(),

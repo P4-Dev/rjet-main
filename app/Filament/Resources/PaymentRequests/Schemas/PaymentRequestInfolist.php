@@ -7,6 +7,7 @@ namespace App\Filament\Resources\PaymentRequests\Schemas;
 use App\Enums\DepositType;
 use App\Enums\PaymentMethod;
 use App\Models\PaymentRequest;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -67,6 +68,48 @@ final class PaymentRequestInfolist
                         TextEntry::make('status')
                             ->label(__('common.fields.status'))
                             ->badge(),
+                    ]),
+
+                Section::make(__('payment_requests.sections.approval'))
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema([
+                        TextEntry::make('approval_state')
+                            ->label(__('payment_requests.fields.approval_state'))
+                            ->badge()
+                            ->state(fn (PaymentRequest $record): string => $record->approvalState())
+                            ->formatStateUsing(fn (string $state): string => __("payment_requests.approval_states.{$state}"))
+                            ->color(fn (string $state): string => match ($state) {
+                                'awaiting' => 'warning',
+                                'returned' => 'danger',
+                                'approved_ready' => 'success',
+                                'no_rule' => 'gray',
+                                default => 'gray',
+                            }),
+                        TextEntry::make('pending_approver')
+                            ->label(__('payment_requests.fields.approver'))
+                            ->state(fn (PaymentRequest $record): ?string => $record->currentPendingApproval()?->approver?->name)
+                            ->placeholder('—'),
+                        TextEntry::make('pending_due_at')
+                            ->label(__('payment_requests.fields.due_at'))
+                            ->state(fn (PaymentRequest $record) => $record->currentPendingApproval()?->due_at)
+                            ->dateTime('d/m/Y H:i')
+                            ->placeholder('—'),
+                        TextEntry::make('pending_escalated_at')
+                            ->label(__('payment_requests.fields.escalated_at'))
+                            ->state(fn (PaymentRequest $record) => $record->currentPendingApproval()?->escalated_at
+                                ?? $record->latestApproval()?->escalated_at)
+                            ->dateTime('d/m/Y H:i')
+                            ->placeholder('—'),
+                        TextEntry::make('latest_reason')
+                            ->label(__('approvals.fields.reason'))
+                            ->state(fn (PaymentRequest $record): ?string => $record->latestApproval()?->reason)
+                            ->placeholder('—')
+                            ->columnSpanFull(),
+                        IconEntry::make('has_approved_for_launch')
+                            ->label(__('payment_requests.fields.has_approved_for_launch'))
+                            ->boolean()
+                            ->state(fn (PaymentRequest $record): bool => $record->hasApprovedForLaunch()),
                     ]),
 
                 Section::make(__('payment_requests.sections.settlement'))

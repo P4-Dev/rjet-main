@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Companies\Schemas;
 
+use Filament\Facades\Filament;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -34,6 +35,11 @@ final class CompanyInfolist
                         IconEntry::make('is_appropriation_required')
                             ->label(__('companies.fields.is_appropriation_required'))
                             ->boolean(),
+
+                        TextEntry::make('approval_sla_business_days')
+                            ->label(__('companies.fields.approval_sla_business_days'))
+                            ->suffix(' '.__('companies.suffixes.business_days'))
+                            ->visible(fn (): bool => Filament::auth()->user()?->isAdm() ?? false),
                     ])
                     ->columns(2),
 

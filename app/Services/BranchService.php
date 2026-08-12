@@ -19,6 +19,7 @@ final class BranchService
     {
         $this->ensureDeletable($branch);
 
+        $branch->approvalRules()->delete();
         $branch->costCenters()->delete();
         $branch->delete();
     }

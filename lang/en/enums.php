@@ -58,4 +58,10 @@ return [
         'boleto' => 'Bank slip',
         'other' => 'Other',
     ],
+
+    'approval_status' => [
+        'pending' => 'Pending',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+    ],
 ];

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\UserException;
+use App\Models\Approval;
+use App\Models\ApprovalRule;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +51,11 @@ final class UserService
 
         $user->update(['is_active' => false]);
 
+        app(ApprovalService::class)->reassignFromInactiveApprover(
+            $user,
+            Auth::user() ?? $user,
+        );
+
         return $user;
     }
 
@@ -56,8 +63,21 @@ final class UserService
     {
         $this->guardAgainstSelf($user);
         $this->guardAgainstLastActiveAdmin($user);
+        $this->guardAgainstPendingApprovalsOrRules($user);
 
         $user->delete();
+    }
+
+    /**
+     * @throws UserException
+     */
+    public function forceDelete(User $user): void
+    {
+        $this->guardAgainstSelf($user);
+        $this->guardAgainstLastActiveAdmin($user);
+        $this->guardAgainstPendingApprovalsOrRules($user);
+
+        $user->forceDelete();
     }
 
     /**
@@ -110,6 +130,22 @@ final class UserService
     {
         if ($user->isLastActiveAdmin()) {
             throw UserException::cannotDeleteLastActiveAdmin();
+        }
+    }
+
+    private function guardAgainstPendingApprovalsOrRules(User $user): void
+    {
+        $hasPending = Approval::query()
+            ->pending()
+            ->where('approver_user_id', $user->getKey())
+            ->exists();
+
+        $hasRules = ApprovalRule::query()
+            ->where('approver_user_id', $user->getKey())
+            ->exists();
+
+        if ($hasPending || $hasRules) {
+            throw UserException::cannotDeleteWithPendingApprovals();
         }
     }
 }

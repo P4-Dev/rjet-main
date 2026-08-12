@@ -8,6 +8,7 @@ use App\Filament\Resources\PaymentRequests\Pages\CreatePaymentRequest;
 use App\Filament\Resources\PaymentRequests\Pages\EditPaymentRequest;
 use App\Filament\Resources\PaymentRequests\Pages\ListPaymentRequests;
 use App\Filament\Resources\PaymentRequests\Pages\ViewPaymentRequest;
+use App\Filament\Resources\PaymentRequests\RelationManagers\ApprovalsRelationManager;
 use App\Filament\Resources\PaymentRequests\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\PaymentRequests\RelationManagers\StatusHistoriesRelationManager;
 use App\Filament\Resources\PaymentRequests\Schemas\PaymentRequestForm;
@@ -68,6 +69,7 @@ final class PaymentRequestResource extends Resource
         return [
             AttachmentsRelationManager::class,
             StatusHistoriesRelationManager::class,
+            ApprovalsRelationManager::class,
         ];
     }
 
@@ -95,6 +97,6 @@ final class PaymentRequestResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['branch.company', 'supplier', 'costCenter', 'appropriation', 'bankDetails.bank']);
+            ->with(['branch.company', 'supplier', 'costCenter', 'appropriation', 'bankDetails.bank', 'approvals.approver']);
     }
 }

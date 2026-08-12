@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\PaymentRequestStatus;
 use App\Models\PaymentRequest;
 use App\Models\User;
 
@@ -61,5 +62,31 @@ final class PaymentRequestPolicy
     public function manageAttachments(User $user, PaymentRequest $paymentRequest): bool
     {
         return $this->update($user, $paymentRequest);
+    }
+
+    public function approve(User $user, PaymentRequest $paymentRequest): bool
+    {
+        if (! $user->canApprove() || ! $paymentRequest->isVisibleTo($user)) {
+            return false;
+        }
+
+        $pending = $paymentRequest->currentPendingApproval();
+
+        if ($pending === null) {
+            return false;
+        }
+
+        return $user->isAdm() || (string) $pending->approver_user_id === (string) $user->getKey();
+    }
+
+    public function reject(User $user, PaymentRequest $paymentRequest): bool
+    {
+        return $this->approve($user, $paymentRequest);
+    }
+
+    public function resubmitForApproval(User $user, PaymentRequest $paymentRequest): bool
+    {
+        return $this->update($user, $paymentRequest)
+            && $paymentRequest->status === PaymentRequestStatus::Requested;
     }
 }

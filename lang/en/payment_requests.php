@@ -20,6 +20,11 @@ return [
         'has_attachments' => 'Attachments',
         'attachments' => 'Attachments',
         'next_status' => 'Next status',
+        'approval_state' => 'Approval',
+        'approver' => 'Approver',
+        'due_at' => 'SLA due at',
+        'escalated_at' => 'Escalated at',
+        'has_approved_for_launch' => 'Ready to launch',
     ],
 
     'sections' => [
@@ -27,6 +32,7 @@ return [
         'amounts' => 'Amounts',
         'payment' => 'Payment and attachments',
         'settlement' => 'Settlement details',
+        'approval' => 'Approval',
     ],
 
     'hints' => [
@@ -46,11 +52,32 @@ return [
         'due_until' => 'Due until',
         'created_from' => 'Created from',
         'created_until' => 'Created until',
+        'approval_status' => 'Approval status',
+        'awaiting_my_approval' => 'Pending for me',
+    ],
+
+    'tabs' => [
+        'all' => 'All',
+        'awaiting_my_approval' => 'My pending',
+        'all_pending_approvals' => 'Awaiting approval',
+        'returned' => 'Returned',
+    ],
+
+    'approval_states' => [
+        'awaiting' => 'Awaiting approval',
+        'returned' => 'Returned',
+        'approved_ready' => 'Approved (ready to launch)',
+        'no_rule' => 'No approval rule',
+        'none' => '—',
     ],
 
     'actions' => [
         'transition_status' => 'Change status',
         'extract_ocr' => 'Read boleto (OCR)',
+        'approve' => 'Approve',
+        'reject' => 'Reject',
+        'resubmit' => 'Resubmit for approval',
+        'send_for_approval' => 'Send for approval',
     ],
 
     'messages' => [
@@ -62,6 +89,12 @@ return [
         'ocr_disabled' => 'Automatic boleto reading is disabled.',
         'ocr_not_found' => 'No valid digitable line was found in the PDF.',
         'no_attachments' => 'No attachments.',
+        'confirm_approve' => 'Confirm approval of this request?',
+        'approved' => 'Request approved.',
+        'rejected' => 'Request rejected and returned to the requester.',
+        'resubmitted' => 'Request resubmitted for approval.',
+        'sent_for_approval' => 'Request sent for approval.',
+        'routed_no_rule' => 'Request created, but no approval rule matches. Configure a range or use Send for approval.',
     ],
 
     'errors' => [
@@ -79,5 +112,6 @@ return [
         'pix_details_incomplete' => 'Provide the Pix key (type + key) or the QR code payload.',
         'transfer_details_incomplete' => 'Fill in all required transfer details.',
         'invalid_holder_document' => 'The beneficiary CPF/CNPJ is invalid.',
+        'approval_required' => 'A valid approval (without material changes) is required before launching.',
     ],
 ];

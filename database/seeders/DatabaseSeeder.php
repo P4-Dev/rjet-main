@@ -29,6 +29,7 @@ final class DatabaseSeeder extends Seeder
             $this->call([
                 DevelopmentSeeder::class,
                 PaymentRequestSeeder::class,
+                ApprovalRuleSeeder::class,
             ]);
         }
     }

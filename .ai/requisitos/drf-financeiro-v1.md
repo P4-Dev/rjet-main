@@ -2,8 +2,8 @@
 
 ## Módulo Financeiro — RJET BPO de Pagamentos
 
-**Versão:** 1.1  
-**Data:** 2026-07-07  
+**Versão:** 1.2  
+**Data:** 2026-08-12  
 **Autor:** tech-writer (subagent)  
 **Status:** Rascunho  
 **Fonte de análise:** [.cursor/plans/levantamento_requisitos_rjet_financeiro_ea1e4370.plan.md](../../.cursor/plans/levantamento_requisitos_rjet_financeiro_ea1e4370.plan.md)
@@ -18,38 +18,48 @@ Este documento formaliza os requisitos funcionais e não funcionais do **módulo
 
 ### 1.2 Escopo
 
-| Incluído (MVP) | Excluído (fora desta versão) |
-|----------------|------------------------------|
-| Gestão de inputs financeiros: solicitações, anexos, workflow por alçadas | Módulo de RH (projeto separado) |
-| Hierarquia **Empresa/Cliente → Filial → Conta bancária**; usuários com **múltiplas filiais** | Integração bancária via API / Open Banking |
-| Geração de arquivos **CNAB 240** para **upload manual** no internet banking (início com **Itaú**) | OCR em provedor cloud |
-| **OCR local** para leitura de **código de barras / linha digitável de boleto** | Importação de **XML NF-e** no fluxo de pagamento |
-| **Importação em lote** de solicitações via planilha com **template de mapeamento de colunas** | |
-| **Lote de anexos** com classificação operacional e **nomenclatura padronizada** (data/hora) | |
-| Armazenamento de anexos em **S3** (produção) | |
-| Anexos apenas **PDF** e **imagens** (NF/recibo/comprovante/boleto) | |
+
+| Incluído (MVP)                                                                                    | Excluído (fora desta versão)                     |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Gestão de inputs financeiros: solicitações, anexos, workflow por alçadas                          | Módulo de RH (projeto separado)                  |
+| Hierarquia **Empresa/Cliente → Filial → Conta bancária**; usuários com **múltiplas filiais**      | Integração bancária via API / Open Banking       |
+| Geração de arquivos **CNAB 240** para **upload manual** no internet banking (início com **Itaú**) | OCR em provedor cloud                            |
+| **OCR local** para leitura de **código de barras / linha digitável de boleto**                    | Importação de **XML NF-e** no fluxo de pagamento |
+| **Importação em lote** de solicitações via planilha com **template de mapeamento de colunas**     |                                                  |
+| **Lote de anexos** com classificação operacional e **nomenclatura padronizada** (data/hora)       |                                                  |
+| Armazenamento de anexos em **S3** (produção)                                                      |                                                  |
+| Anexos apenas **PDF** e **imagens** (NF/recibo/comprovante/boleto)                                |                                                  |
+
+
+
 
 ### 1.3 Definições e Acrônimos
 
-| Termo | Definição |
-|-------|-----------|
-| DRF | Documento de Requisitos Funcionais |
-| BPO | Business Process Outsourcing — terceirização de processos; aqui, operação de pagamentos |
-| CNAB | Padrão brasileiro de arquivos de troca com instituições financeiras (remessa/retorno) |
-| OCR | Reconhecimento óptico de caracteres / leitura automatizada de dados em documento ou imagem |
-| Alçada | Limite de valor ou regra que define quem aprova uma solicitação |
-| BACEN | Banco Central do Brasil — referência à lista de instituições financeiras |
-| PF / PJ | Pessoa Física / Pessoa Jurídica |
-| PIX | Método de pagamento instantâneo do Banco Central |
+
+| Termo                           | Definição                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| DRF                             | Documento de Requisitos Funcionais                                                                                               |
+| BPO                             | Business Process Outsourcing — terceirização de processos; aqui, operação de pagamentos                                          |
+| CNAB                            | Padrão brasileiro de arquivos de troca com instituições financeiras (remessa/retorno)                                            |
+| OCR                             | Reconhecimento óptico de caracteres / leitura automatizada de dados em documento ou imagem                                       |
+| Alçada                          | Limite de valor ou regra que define quem aprova uma solicitação                                                                  |
+| BACEN                           | Banco Central do Brasil — referência à lista de instituições financeiras                                                         |
+| PF / PJ                         | Pessoa Física / Pessoa Jurídica                                                                                                  |
+| PIX                             | Método de pagamento instantâneo do Banco Central                                                                                 |
 | **Empresa / Cliente (Company)** | Entidade de nível superior que agrupa filiais (ex.: Altitude, Glow); escopo de fornecedor global, SLA e visibilidade operacional |
-| **Filial (Branch)** | Unidade operacional vinculada a uma Empresa, com CNPJ e contas bancárias próprias |
-| **Template de Importação** | Cadastro que mapeia colunas de planilha para campos de solicitação de pagamento |
-| **Nomenclatura Padronizada** | String alfanumérica gerada pelo sistema com base em data/hora para arquivos do lote de anexos |
-| **Permissão Aprovador** | Flag/capacidade atribuída a usuários Operador ou Adm — não constitui perfil separado |
+| **Filial (Branch)**             | Unidade operacional vinculada a uma Empresa, com CNPJ e contas bancárias próprias                                                |
+| **Template de Importação**      | Cadastro que mapeia colunas de planilha para campos de solicitação de pagamento                                                  |
+| **Nomenclatura Padronizada**    | String alfanumérica gerada pelo sistema com base em data/hora para arquivos do lote de anexos                                    |
+| **Permissão Aprovador**         | Flag/capacidade atribuída a usuários Operador ou Adm — não constitui perfil separado                                             |
+
 
 ---
 
+
+
 ## 2. Descrição Geral
+
+
 
 ### 2.1 Perspectiva do Produto
 
@@ -66,13 +76,17 @@ A solução é um sistema **centralizado** para captura estruturada de **solicit
 7. **Fase 7 — Baixa e CNAB:** baixa em lote, configuração CNAB 240 (Itaú inicial) por filial/banco, geração assíncrona e download.
 8. **Fase 8 — Dashboard e relatórios:** indicadores no Filament e exportação analítica (Excel com links a anexos).
 
+
+
 ### 2.3 Usuários e Características
 
-| Perfil | Descrição resumida | Necessidades principais | Escopo de visibilidade |
-|--------|-------------------|-------------------------|------------------------|
-| **Cliente** | Usuário que consome o fluxo de solicitações | Visualizar e **criar** solicitações de pagamento | Solicitações das **filiais às quais está vinculado** |
-| **Operador** | Usuário operacional | Tudo do Cliente + **alterar status e dados** de solicitações; classificar lote de anexos; importar planilhas | **Todas as empresas** e filiais |
-| **Adm** | Administrador do módulo | Tudo do Operador + **gerenciar usuários**, **excluir** registros, cadastrar **classificações gerenciais**, configurar **workflow / CNAB / templates** | **Todas as empresas** e filiais |
+
+| Perfil       | Descrição resumida                          | Necessidades principais                                                                                                                               | Escopo de visibilidade                               |
+| ------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **Cliente**  | Usuário que consome o fluxo de solicitações | Visualizar e **criar** solicitações de pagamento                                                                                                      | Solicitações das **filiais às quais está vinculado** |
+| **Operador** | Usuário operacional                         | Tudo do Cliente + **alterar status e dados** de solicitações; classificar lote de anexos; importar planilhas                                          | **Todas as empresas** e filiais                      |
+| **Adm**      | Administrador do módulo                     | Tudo do Operador + **gerenciar usuários**, **excluir** registros, cadastrar **classificações gerenciais**, configurar **workflow / CNAB / templates** | **Todas as empresas** e filiais                      |
+
 
 **Permissão Aprovador:** não é um perfil separado. Usuários **Operador** ou **Adm** podem receber a **permissão de aprovador** para atuar em alçadas conforme **ApprovalRule**.
 
@@ -90,6 +104,8 @@ A solução é um sistema **centralizado** para captura estruturada de **solicit
 - **Escopo MVP:** somente domínio **Financeiro**; demais módulos (ex.: RH) ficam fora.
 - **Volume operacional inicial:** ~**70 pagamentos/dia** — dimensionamento de performance deve considerar esse patamar.
 
+
+
 ### 2.5 Dependências
 
 - **Biblioteca PHP** para decodificação de **código de barras / linha digitável** de boleto.
@@ -101,13 +117,19 @@ A solução é um sistema **centralizado** para captura estruturada de **solicit
 
 ---
 
+
+
 ## 3. Requisitos Funcionais
 
 Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item inclui regras de negócio (**RN**) locais quando aplicável.
 
 ---
 
+
+
 ### Fase 1 — Base (autenticação, perfis, empresa, filial)
+
+
 
 #### RF001 — Autenticação e sessão
 
@@ -127,6 +149,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Sessão expira ou é invalidada conforme política global da aplicação.
 
 ---
+
+
 
 #### RF002 — Gestão de usuários (CRUD) com perfil e múltiplas filiais
 
@@ -148,6 +172,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF003 — Cadastro de empresas/clientes (Company)
 
 **Prioridade:** Alta  
@@ -166,6 +192,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Exclusão lógica respeita SoftDeletes quando aplicável.
 
 ---
+
+
 
 #### RF004 — Cadastro de filiais (Branch)
 
@@ -186,6 +214,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF005 — Contas bancárias da filial (BranchBankAccount)
 
 **Prioridade:** Alta  
@@ -202,6 +232,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Associação com registro de **Bank** é possível quando o cadastro de bancos existir (Fase 2).
 
 ---
+
+
 
 #### RF006 — Autorização por perfil, visibilidade e permissão de aprovador (policies)
 
@@ -225,6 +257,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF007 — Modelo de usuário customizado (multi-filial)
 
 **Prioridade:** Alta  
@@ -238,7 +272,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 2 — Cadastros gerenciais
+
+
 
 #### RF008 — Centro de custo (CostCenter)
 
@@ -253,6 +291,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF009 — Apropriação (Appropriation)
 
 **Prioridade:** Média  
@@ -265,6 +305,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Integridade referencial com demais entidades respeitada.
 
 ---
+
+
 
 #### RF010 — Fornecedor global com override de forma de pagamento por empresa
 
@@ -286,6 +328,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF011 — Instituições financeiras / BACEN (Bank) — cadastro manual
 
 **Prioridade:** Alta  
@@ -304,7 +348,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 3 — Solicitação de pagamento (core) e OCR
+
+
 
 #### RF012 — Solicitação de pagamento (PaymentRequest)
 
@@ -324,6 +372,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Histórico de mudanças de status persistido de forma auditável.
 
 ---
+
+
 
 #### RF013 — Formulário em três blocos com lógica condicional
 
@@ -346,6 +396,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF014 — Dados bancários da solicitação (PaymentRequestBankDetails)
 
 **Prioridade:** Alta  
@@ -358,6 +410,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Relatórios e CNAB consomem esses campos na Fase 7.
 
 ---
+
+
 
 #### RF015 — Anexos em S3 (PDF e imagens)
 
@@ -380,6 +434,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF016 — Cálculo automático do valor líquido
 
 **Prioridade:** Alta  
@@ -392,6 +448,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Arredondamento segue `decimal(10,2)` sem uso de float.
 
 ---
+
+
 
 #### RF017 — OCR local de boleto ao anexar
 
@@ -410,6 +468,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Feedback de falha apresentado sem vazar dados sensíveis.
 
 ---
+
+
 
 #### RF018 — Listagem de solicitações com filtros e escopo de visibilidade
 
@@ -430,7 +490,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 4 — Workflow com alçadas
+
+
 
 #### RF019 — Regras de aprovação (ApprovalRule)
 
@@ -441,15 +505,17 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 **Regras de negócio:**
 
 - RN019.1: Aprovador **não é perfil separado** — regra referencia usuários Operador/Adm com permissão.
-- RN019.2: Exemplo ilustrativo: até R$ 5.000 → gerente; R$ 5.000–50.000 → diretor; &gt; R$ 50.000 → CFO; matriz real coletada por filial (risco R05).
+- RN019.2: Exemplo ilustrativo: até R$ 5.000 → gerente; R$ 5.000–50.000 → diretor; > R$ 50.000 → CFO; **baseline de seeders** (0–5k / 5k–50k / >50k) aceito como matriz default (risco R05 — dados reais por filial ajustáveis operacionalmente).
 
 **Critérios de aceite:**
 
-- [ ] Adm cria, edita e desativa regras; sobreposição tratada com regra de desempate documentada.
-- [ ] Valor da solicitação aciona faixa correta por filial.
-- [ ] Apenas usuários com permissão de aprovador aparecem como candidatos.
+- [x] Adm cria, edita e desativa regras; sobreposição tratada com regra de desempate documentada.
+- [x] Valor da solicitação aciona faixa correta por filial.
+- [x] Apenas usuários com permissão de aprovador aparecem como candidatos.
 
 ---
+
+
 
 #### RF020 — Roteamento automático para aprovador
 
@@ -459,10 +525,12 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Aprovador designado recebe registro **Approval** com status Pending.
-- [ ] Filas de “pendentes de aprovação” refletem roteamento.
+- [x] Aprovador designado recebe registro **Approval** com status Pending.
+- [x] Filas de “pendentes de aprovação” refletem roteamento.
 
 ---
+
+
 
 #### RF021 — Notificação ao aprovador
 
@@ -472,10 +540,12 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Aprovador notificado ao receber pendência.
-- [ ] Falhas de notificação não corrompem estado da solicitação.
+- [x] Aprovador notificado ao receber pendência.
+- [x] Falhas de notificação não corrompem estado da solicitação.
 
 ---
+
+
 
 #### RF022 — Rejeição retorna ao solicitante
 
@@ -485,10 +555,12 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Histórico registra rejeição, autor e motivo (se previsto).
-- [ ] Solicitante visualiza solicitação como “devolvida” e pode agir conforme permissões.
+- [x] Histórico registra rejeição, autor e motivo (se previsto).
+- [x] Solicitante visualiza solicitação como “devolvida” e pode agir conforme permissões.
 
 ---
+
+
 
 #### RF023 — Registro de aprovações (Approval)
 
@@ -498,32 +570,38 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Aprovação e rejeição atualizam status e disparam efeitos de fluxo coerentes.
-- [ ] Histórico de aprovações consultável por perfis autorizados.
+- [x] Aprovação e rejeição atualizam status e disparam efeitos de fluxo coerentes.
+- [x] Histórico de aprovações consultável por perfis autorizados.
 
 ---
+
+
 
 #### RF024 — SLA configurável por empresa com escalação automática
 
 **Prioridade:** Alta  
 
-**Descrição:** **Adm** configura **prazo/SLA de aprovação por empresa**; ao expirar, sistema executa **escalação automática** (ex.: notificar próximo nível, reatribuir aprovador — **escada exata a definir** na implementação).
+**Descrição:** **Adm** configura **SLA de aprovação por empresa em dias úteis** (`approval_sla_business_days`, default 2); ao expirar, o sistema executa **escalação automática** conforme escada fechada na seção 8 (sininho Filament / canal `database`; sem reatribuição no breach).
 
 **Regras de negócio:**
 
-- RN024.1: SLA é parâmetro **por empresa (Company)**, não global fixo.
+- RN024.1: SLA é parâmetro **por empresa (Company)**, não global fixo — coluna `approval_sla_business_days` (dias úteis Mon–Fri; feriados BR fora do escopo F4).
 - RN024.2: Escalação dispara evento **ApprovalSlaBreached** (seção 6).
-- RN024.3: Detalhe da **escada de escalação** (para quem escala, quantos níveis) — sub-pendência seção 8.
+- RN024.3: Escada de escalação — **fechada** (seção 8): notificação interna (sininho) para aprovador atual + Adms ativos; marca `escalated_at` uma vez; **não** reatribui aprovador no breach; **não** envia mail na escalação.
 
 **Critérios de aceite:**
 
-- [ ] Adm define SLA (ex.: horas/dias úteis) por empresa.
-- [ ] Aprovação pendente além do SLA dispara escalação registrada em log/histórico.
-- [ ] Notificação enviada aos envolvidos na escalação.
+- [x] Adm define SLA em **dias úteis** por empresa.
+- [x] Aprovação pendente além do SLA dispara escalação registrada (`escalated_at` + evento).
+- [x] Notificação enviada aos envolvidos na escalação (canal `database` / sininho).
 
 ---
 
+
+
 ### Fase 5 — Lote de solicitações (importação via planilha)
+
+
 
 #### RF025 — Cadastro de template de importação (ImportTemplate)
 
@@ -543,6 +621,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Campos obrigatórios do domínio devem estar mapeados ou ter default definido.
 
 ---
+
+
 
 #### RF026 — Importação em lote de solicitações via planilha
 
@@ -565,7 +645,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 6 — Lote de anexos (nomenclatura padronizada)
+
+
 
 #### RF027 — Upload múltiplo de arquivos (AttachmentBatch)
 
@@ -585,6 +669,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF028 — Classificação ordenada por operadores internos
 
 **Prioridade:** Alta  
@@ -603,6 +689,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Histórico registra operador e timestamp de cada classificação.
 
 ---
+
+
 
 #### RF029 — Geração de nomenclatura padronizada (data/hora)
 
@@ -624,7 +712,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 7 — Baixa em lote e CNAB
+
+
 
 #### RF030 — Tela de baixa em lote com filtros
 
@@ -639,6 +731,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF031 — Data de baixa e banco em lote
 
 **Prioridade:** Alta  
@@ -651,6 +745,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Dados gravados em **PaymentSettlement** (ou equivalente).
 
 ---
+
+
 
 #### RF032 — Configuração CNAB 240 por filial e banco (CnabConfig)
 
@@ -670,6 +766,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF033 — Geração assíncrona de CNAB (GenerateCnabFileJob)
 
 **Prioridade:** Alta  
@@ -688,6 +786,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF034 — Download do arquivo CNAB
 
 **Prioridade:** Alta  
@@ -701,7 +801,11 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ### Fase 8 — Dashboard e relatórios
+
+
 
 #### RF035 — Dashboard Filament com indicadores
 
@@ -716,6 +820,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 #### RF036 — Gráficos por filial e centro de custo
 
 **Prioridade:** Média  
@@ -728,6 +834,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 - [ ] Performance adequada para ~70 pagamentos/dia (RNF011).
 
 ---
+
+
 
 #### RF037 — Relatório analítico em Excel com links para anexos
 
@@ -742,19 +850,23 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 ---
 
+
+
 ## 4. Requisitos Não-Funcionais
+
+
 
 ### RNF001 — Modelagem de dados
 
-Chaves primárias **UUID**; **timestamps**; **SoftDeletes**; colunas de autoria **`created_by` / `updated_by`** — [.ai/docs/database.md](../docs/database.md). Hierarquia **Company → Branch → BranchBankAccount**.
+Chaves primárias **UUID**; **timestamps**; **SoftDeletes**; colunas de autoria `created_by` **/** `updated_by` — [.ai/docs/database.md](../docs/database.md). Hierarquia **Company → Branch → BranchBankAccount**.
 
 ### RNF002 — Valores monetários
 
-Todos os valores financeiros persistidos como **`decimal(10,2)`** — sem `float`/`double`.
+Todos os valores financeiros persistidos como `decimal(10,2)` — sem `float`/`double`.
 
 ### RNF003 — Status persistidos como string
 
-Campos de status/tipo como **`string(20)`** indexados, com **cast para Enum PHP** — [.ai/docs/enums.md](../docs/enums.md).
+Campos de status/tipo como `string(20)` indexados, com **cast para Enum PHP** — [.ai/docs/enums.md](../docs/enums.md).
 
 ### RNF004 — Anexos polimórficos
 
@@ -794,17 +906,23 @@ Produção em **S3** (private); desenvolvimento pode usar disco local — [.ai/d
 
 ---
 
+
+
 ## 5. Status e transições
 
 > Padrão: `string` no banco; Enum no PHP — [.ai/docs/enums.md](../docs/enums.md).
 
+
+
 ### 5.1 UserRole (papéis)
 
-| Valor | Uso |
-|-------|-----|
-| Cliente | Criação/visualização de solicitações (escopo filiais vinculadas) |
-| Operador | Alteração operacional; lote de anexos; importação |
-| Adm | Administração completa do módulo |
+
+| Valor    | Uso                                                              |
+| -------- | ---------------------------------------------------------------- |
+| Cliente  | Criação/visualização de solicitações (escopo filiais vinculadas) |
+| Operador | Alteração operacional; lote de anexos; importação                |
+| Adm      | Administração completa do módulo                                 |
+
 
 *Transições:* N/A (atributo do usuário).
 
@@ -812,143 +930,112 @@ Produção em **S3** (private); desenvolvimento pode usar disco local — [.ai/d
 
 ### 5.2 PersonType
 
-| Valor | Uso |
-|-------|-----|
-| Pf | Pessoa física — CPF |
-| Pj | Pessoa jurídica — CNPJ |
+
+| Valor | Uso                    |
+| ----- | ---------------------- |
+| Pf    | Pessoa física — CPF    |
+| Pj    | Pessoa jurídica — CNPJ |
+
+
+
 
 ### 5.3 PaymentRequestStatus
 
-| Status | Descrição | Transições permitidas (macro fluxo) |
-|--------|-----------|-------------------------------------|
-| Requested | Solicitada / em elaboração ou aprovação | → Launched |
-| Launched | Lançada no sistema / enviada ao banco | → Settled |
-| Settled | Liquidada / baixada | — |
+
+| Status    | Descrição                               | Transições permitidas (macro fluxo) |
+| --------- | --------------------------------------- | ----------------------------------- |
+| Requested | Solicitada / em elaboração ou aprovação | → Launched                          |
+| Launched  | Lançada no sistema / enviada ao banco   | → Settled                           |
+| Settled   | Liquidada / baixada                     | —                                   |
+
+
+
 
 ### 5.4 PaymentMethod / DepositType / PixKeyType
 
-| Enum | Valores |
-|------|---------|
-| PaymentMethod | Boleto, Deposit |
-| DepositType | Pix, Transfer |
-| PixKeyType | Random, Cpf, Phone, Email |
+
+| Enum          | Valores                   |
+| ------------- | ------------------------- |
+| PaymentMethod | Boleto, Deposit           |
+| DepositType   | Pix, Transfer             |
+| PixKeyType    | Random, Cpf, Phone, Email |
+
+
+
 
 ### 5.5 ApprovalStatus
 
-| Status | Transições |
-|--------|------------|
-| Pending | → Approved, → Rejected (ou escalação por SLA — RF024) |
-| Approved | — |
-| Rejected | — (devolução ao solicitante, RF022) |
+
+| Status   | Transições                                                                 |
+| -------- | -------------------------------------------------------------------------- |
+| Pending  | → Approved, → Rejected; escalação SLA (RF024) **não** muda status — só `escalated_at` |
+| Approved | —                                                                          |
+| Rejected | — (devolução ao solicitante, RF022)                                        |
+
 
 ---
+
+
 
 ## 6. Eventos de negócio
 
-> Listeners e filas finais — **TBD** na arquitetura [.ai/docs/events.md](../docs/events.md).
+> Listeners e filas da **Fase 4** preenchidos a partir do código. Demais eventos (F5–F8) permanecem TBD — [.ai/docs/events.md](../docs/events.md).
 
-| Evento | Gatilho provável | Listeners (TBD) | Fila |
-|--------|------------------|-----------------|------|
-| PaymentRequestCreated | Criação da solicitação | Notificações | TBD |
-| PaymentRequestStatusChanged | Mudança de status | Dashboard cache | TBD |
-| PaymentRequestBatchImported | Importação em lote concluída | Notificar solicitante; log | Sim |
-| ApprovalAssigned | Nova pendência de aprovação | Notificar aprovador | TBD |
-| PaymentRequestApproved | Aprovação concluída | Próximo passo workflow | TBD |
-| PaymentRequestRejected | Rejeição registrada | Notificar solicitante | TBD |
-| ApprovalSlaBreached | SLA expirado | Escalação automática; alerta | Sim |
-| AttachmentBatchClassified | Lote de anexos classificado | Disparar renomeação | TBD |
-| AttachmentRenamed | Nomenclatura padronizada aplicada | Atualizar vínculos | TBD |
-| CnabFileGenerated | Job CNAB concluído | Registrar download | Sim |
-| AnalyticalReportGenerated | Excel pronto | Notificar solicitante | Sim |
 
----
+| Evento                      | Gatilho provável                  | Listeners                                                                 | Fila |
+| --------------------------- | --------------------------------- | ------------------------------------------------------------------------- | ---- |
+| PaymentRequestCreated       | Criação da solicitação            | `LogPaymentRequestActivity` (F3); `RoutePaymentRequestOnCreated` (F4, sync) | Route: Não; Log: conforme F3 |
+| PaymentRequestStatusChanged | Mudança de status                 | `LogPaymentRequestActivity`                                               | Não (F3) |
+| PaymentRequestBatchImported | Importação em lote concluída      | Notificar solicitante; log                                                | Sim (TBD F5) |
+| ApprovalAssigned            | Nova pendência (`route`)          | `SendApprovalAssignedNotification` → mail + database                      | Sim  |
+| ApprovalReassigned          | Reatribuição (aprovador inativo)  | `SendApprovalReassignedNotification` → mail + database                    | Sim  |
+| PaymentRequestApproved      | Aprovação concluída               | `SendPaymentRequestApprovedNotification` → mail + database                | Sim  |
+| PaymentRequestRejected      | Rejeição registrada               | `SendPaymentRequestRejectedNotification` → mail + database                | Sim  |
+| ApprovalSlaBreached         | SLA expirado (`escalate`)         | `SendApprovalSlaBreachedNotifications` → database only (aprovador + Adms) | Sim  |
+| AttachmentBatchClassified   | Lote de anexos classificado       | Disparar renomeação                                                       | TBD  |
+| AttachmentRenamed           | Nomenclatura padronizada aplicada | Atualizar vínculos                                                        | TBD  |
+| CnabFileGenerated           | Job CNAB concluído                | Registrar download                                                        | Sim  |
+| AnalyticalReportGenerated   | Excel pronto                      | Notificar solicitante                                                     | Sim  |
 
-## 7. Riscos e mitigações
-
-| ID | Risco | Mitigação |
-|----|-------|-----------|
-| R02 | Variações de CNAB por banco | **Strategy pattern** — adapter Itaú primeiro; demais incrementalmente |
-| R05 | Regras de alçada incompletas | Coletar **matriz por filial** antes da Fase 4 |
-| R08 | Dados bancários incorretos → rejeição CNAB | Validação rigorosa + **dry-run** antes do arquivo final |
-| R09 | Falta de sandbox bancário | Conta/ambiente de **homologação Itaú** |
-| R12 | LGPD — dados de fornecedores | **Baixo risco operacional** (sem mascaramento exigido); controle de acesso mantido |
-| R13 | Qualidade de dados na **importação em lote** | Validação linha a linha; relatório de erros; amostragem operacional pós-import |
 
 ---
 
-## 8. Decisões de negócio (respondidas)
 
-| # | Pergunta | Decisão RJET | Incorporado em |
-|---|----------|--------------|----------------|
-| 1 | Cliente vê só suas solicitações ou todas da filial? | Cliente vê solicitações das **filiais vinculadas**; Operador/Adm veem **todas as empresas** | RF006, RF018; seção 2.3 |
-| 2 | Usuário pertence a uma filial fixa ou múltiplas? | **Múltiplas filiais** (ex.: time de compras) | RF002, RF007 |
-| 3 | Fornecedor global ou por filial? | **Global por empresa** + **override de forma de pagamento por empresa** | RF010 |
-| 4 | Lista BACEN: API/cron ou seeder? | **Cadastro manual** aplicado a todos | RF011 |
-| 5 | CNAB: layout e bancos iniciais? | **Layout 240**; início com **Itaú**; demais depois | RF032, RF033; seção 2.4 |
-| 6 | Perfil Aprovador separado? | **Permissão** dentro de Operador/Adm | RF002, RF006, RF019; seção 2.3 |
-| 7 | SLA com escalação automática? | **Sim**, configurável **por empresa** | RF024 |
-| 8 | Volume esperado? | ~**70 pagamentos/dia** | RNF011 |
-| 9 | Storage de anexos? | **S3** | RF015, RNF012 |
-| 10 | Tipos de anexo? | **PDF e imagens**; sem XML NF-e | RF015, RNF012; seção 1.2 |
-| 11 | Retenção/mascaramento LGPD? | **Sem mascaramento** (fornecedores) | RNF006; risco R12 |
-| 12 | 2FA obrigatório? | **Não** por ora | RF001 |
 
-### Sub-pendências (ainda a definir na implementação)
+## 7. Matriz de rastreabilidade (Fase 4)
 
-| Item | Contexto |
-|------|----------|
-| Tamanho máximo por anexo | Parâmetro operacional; não bloqueia RF015 |
-| Escada exata de escalação de SLA | Para quem escala após SLA; detalhar na Fase 4 com RJET |
+| Requisito | Artefatos principais | Testes | Status |
+|-----------|----------------------|--------|--------|
+| RF019 | `ApprovalRule`, `ApprovalRuleService`, `ApprovalRuleResource`, `ApprovalRuleSeeder` | `ApprovalRuleServiceTest`, `ApprovalRuleResourceTest`, `ApprovalAuthorizationTest` | Implementado |
+| RF020 | `ApprovalService::route`, `RoutePaymentRequestOnCreated`, tabs/filas PR | `ApprovalServiceTest`, `PaymentRequestApprovalActionsTest` | Implementado |
+| RF021 | `ApprovalAssigned` + `ApprovalAssignedNotification` | `ApprovalServiceTest` (notify / isolation) | Implementado |
+| RF022 | `reject` / `resubmit`, badge Devolvida, actions Filament | `ApprovalServiceTest`, `PaymentRequestApprovalActionsTest`, `PaymentRequestEditabilityTest` | Implementado |
+| RF023 | `Approval`, `ApprovalStatus`, `ApprovalsRelationManager` | `ApprovalStatusTest`, `ApprovalCascadeTest`, `ApprovalAuthorizationTest` | Implementado |
+| RF024 | `approval_sla_business_days`, `BusinessDays`, `approvals:escalate-sla`, `ApprovalSlaBreached` | `ApprovalSlaEscalationTest`, `BusinessDaysTest`, form SLA Company | Implementado |
+
 
 ---
 
-## 9. Matriz de rastreabilidade inicial
 
-| Requisito | Fase | Caso de uso | Teste automatizado | Status |
-|-----------|------|-------------|--------------------|--------|
-| RF001 | 1 | — | — | Não iniciado |
-| RF002 | 1 | — | — | Não iniciado |
-| RF003 | 1 | — | — | Não iniciado |
-| RF004 | 1 | — | — | Não iniciado |
-| RF005 | 1 | — | — | Não iniciado |
-| RF006 | 1 | — | — | Não iniciado |
-| RF007 | 1 | — | — | Não iniciado |
-| RF008 | 2 | — | — | Não iniciado |
-| RF009 | 2 | — | — | Não iniciado |
-| RF010 | 2 | — | — | Não iniciado |
-| RF011 | 2 | — | — | Não iniciado |
-| RF012 | 3 | — | — | Não iniciado |
-| RF013 | 3 | — | — | Não iniciado |
-| RF014 | 3 | — | — | Não iniciado |
-| RF015 | 3 | — | — | Não iniciado |
-| RF016 | 3 | — | — | Não iniciado |
-| RF017 | 3 | — | — | Não iniciado |
-| RF018 | 3 | — | — | Não iniciado |
-| RF019 | 4 | — | — | Não iniciado |
-| RF020 | 4 | — | — | Não iniciado |
-| RF021 | 4 | — | — | Não iniciado |
-| RF022 | 4 | — | — | Não iniciado |
-| RF023 | 4 | — | — | Não iniciado |
-| RF024 | 4 | — | — | Não iniciado |
-| RF025 | 5 | — | — | Não iniciado |
-| RF026 | 5 | — | — | Não iniciado |
-| RF027 | 6 | — | — | Não iniciado |
-| RF028 | 6 | — | — | Não iniciado |
-| RF029 | 6 | — | — | Não iniciado |
-| RF030 | 7 | — | — | Não iniciado |
-| RF031 | 7 | — | — | Não iniciado |
-| RF032 | 7 | — | — | Não iniciado |
-| RF033 | 7 | — | — | Não iniciado |
-| RF034 | 7 | — | — | Não iniciado |
-| RF035 | 8 | — | — | Não iniciado |
-| RF036 | 8 | — | — | Não iniciado |
-| RF037 | 8 | — | — | Não iniciado |
+
+## 8. Sub-pendências e decisões fechadas
+
+| ID | Tema | Status | Decisão / nota |
+|----|------|--------|----------------|
+| P-SLA-ESC | Escada exata de escalação de SLA (RF024 / RN024.3) | **Fechada** (2026-08-05 / entrega F4 2026-08-12) | Notificação interna no **sininho Filament** (canal `database`) para aprovador atual + Adms ativos; preenche `escalated_at` uma vez; **sem** reassign no breach; **sem** mail na escalação. Comando `approvals:escalate-sla` a cada 15 min. |
+| P-ANEXO-SIZE | Tamanho máximo por arquivo (RN015.4) | Aberta / F3 | Parâmetro operacional (`RJET_ATTACHMENTS_MAX_KB`); fora do escopo F4. |
+| P-FERIADOS | Feriados BR no cálculo de dias úteis do SLA | Adiada | F4 conta apenas Mon–Fri; feriados podem entrar depois sem mudar a coluna. |
+
 
 ---
 
-## 10. Histórico de revisões
+
+
+## Histórico de revisões
 
 | Versão | Data | Autor | Descrição |
 |--------|------|-------|-----------|
-| 1.0 | 2026-05-04 | tech-writer (subagent) | Versão inicial (Rascunho) a partir do levantamento do BA |
-| 1.1 | 2026-07-07 | tech-writer (subagent) | Incorporação das 12 decisões RJET; entidade Company; fases 5–6 (lote solicitações/anexos); renumeração RF001–RF037; CNAB 240 Itaú; S3; SLA por empresa |
+| 1.0 | 2026-07-07 | tech-writer | Versão inicial do DRF |
+| 1.1 | 2026-07-07 | tech-writer | Ajustes pós-levantamento |
+| 1.2 | 2026-08-12 | tech-writer | Fase 4: critérios RF019–RF024 marcados; eventos F4; escada SLA fechada (§8); matriz §7 |
+

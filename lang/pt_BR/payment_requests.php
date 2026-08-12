@@ -20,6 +20,11 @@ return [
         'has_attachments' => 'Anexos',
         'attachments' => 'Anexos',
         'next_status' => 'Novo status',
+        'approval_state' => 'Aprovação',
+        'approver' => 'Aprovador',
+        'due_at' => 'Prazo SLA',
+        'escalated_at' => 'Escalada em',
+        'has_approved_for_launch' => 'Pronta para lançar',
     ],
 
     'sections' => [
@@ -27,6 +32,7 @@ return [
         'amounts' => 'Valores',
         'payment' => 'Pagamento e comprovantes',
         'settlement' => 'Dados de liquidação',
+        'approval' => 'Aprovação',
     ],
 
     'hints' => [
@@ -46,11 +52,32 @@ return [
         'due_until' => 'Vencimento até',
         'created_from' => 'Criada de',
         'created_until' => 'Criada até',
+        'approval_status' => 'Status da aprovação',
+        'awaiting_my_approval' => 'Pendentes para mim',
+    ],
+
+    'tabs' => [
+        'all' => 'Todas',
+        'awaiting_my_approval' => 'Minhas pendências',
+        'all_pending_approvals' => 'Aguardando aprovação',
+        'returned' => 'Devolvidas',
+    ],
+
+    'approval_states' => [
+        'awaiting' => 'Aguardando aprovação',
+        'returned' => 'Devolvida',
+        'approved_ready' => 'Aprovada (pronta para lançar)',
+        'no_rule' => 'Sem regra de alçada',
+        'none' => '—',
     ],
 
     'actions' => [
         'transition_status' => 'Alterar status',
         'extract_ocr' => 'Ler boleto (OCR)',
+        'approve' => 'Aprovar',
+        'reject' => 'Rejeitar',
+        'resubmit' => 'Reenviar para aprovação',
+        'send_for_approval' => 'Enviar para aprovação',
     ],
 
     'messages' => [
@@ -62,6 +89,12 @@ return [
         'ocr_disabled' => 'Leitura automática de boleto está desabilitada.',
         'ocr_not_found' => 'Nenhuma linha digitável válida foi encontrada no PDF.',
         'no_attachments' => 'Nenhum anexo.',
+        'confirm_approve' => 'Confirma a aprovação desta solicitação?',
+        'approved' => 'Solicitação aprovada.',
+        'rejected' => 'Solicitação rejeitada e devolvida ao solicitante.',
+        'resubmitted' => 'Solicitação reenviada para aprovação.',
+        'sent_for_approval' => 'Solicitação enviada para aprovação.',
+        'routed_no_rule' => 'Solicitação criada, mas nenhuma regra de alçada corresponde. Configure uma faixa ou use Enviar para aprovação.',
     ],
 
     'errors' => [
@@ -79,5 +112,6 @@ return [
         'pix_details_incomplete' => 'Informe a chave Pix (tipo + chave) ou o código do QR Code.',
         'transfer_details_incomplete' => 'Preencha todos os dados obrigatórios da transferência.',
         'invalid_holder_document' => 'O CPF/CNPJ do favorecido é inválido.',
+        'approval_required' => 'É necessário uma aprovação válida (sem alterações materiais) antes de lançar.',
     ],
 ];

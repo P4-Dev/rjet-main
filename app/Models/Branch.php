@@ -74,6 +74,14 @@ final class Branch extends Model
     }
 
     /**
+     * @return HasMany<ApprovalRule, $this>
+     */
+    public function approvalRules(): HasMany
+    {
+        return $this->hasMany(ApprovalRule::class);
+    }
+
+    /**
      * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany

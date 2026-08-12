@@ -39,6 +39,7 @@ final class CompanyObserver
         $company->appropriations()->delete();
 
         $company->branches()->get()->each(function (Branch $branch): void {
+            $branch->approvalRules()->delete();
             $branch->costCenters()->delete();
             $branch->bankAccounts()->delete();
         });
@@ -75,6 +76,10 @@ final class CompanyObserver
             ->get()
             ->each(function (Branch $branch) use ($threshold): void {
                 $branch->restore();
+
+                $branch->approvalRules()->onlyTrashed()
+                    ->where('deleted_at', '>=', $threshold)
+                    ->restore();
 
                 $branch->costCenters()->onlyTrashed()
                     ->where('deleted_at', '>=', $threshold)
@@ -118,6 +123,7 @@ final class CompanyObserver
             ->where('company_id', $company->getKey())
             ->get()
             ->each(function (Branch $branch): void {
+                $branch->approvalRules()->withTrashed()->forceDelete();
                 $branch->costCenters()->withTrashed()->forceDelete();
                 $branch->bankAccounts()->withTrashed()->forceDelete();
                 $branch->forceDelete();

@@ -24,5 +24,6 @@ return [
     'errors' => [
         'cannot_delete_self' => 'Um administrador não pode excluir ou desativar a própria conta.',
         'cannot_delete_last_admin' => 'Não é possível excluir ou desativar o último administrador ativo do sistema.',
+        'cannot_delete_with_pending_approvals' => 'Não é possível excluir o usuário enquanto houver aprovações pendentes ou regras de alçada vinculadas.',
     ],
 ];

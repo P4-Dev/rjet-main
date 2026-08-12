@@ -30,6 +30,7 @@ final class Company extends Model
         'document',
         'is_active',
         'is_appropriation_required',
+        'approval_sla_business_days',
     ];
 
     /**
@@ -40,6 +41,7 @@ final class Company extends Model
         return [
             'is_active' => 'boolean',
             'is_appropriation_required' => 'boolean',
+            'approval_sla_business_days' => 'integer',
         ];
     }
 
