@@ -18,7 +18,7 @@ services:
     networks:
       - app
     ports:
-      - "5173:5173"
+      - "${DOCKER_APP_PORT}:5173"
 
   nginx:
     image: nginx:alpine
@@ -26,7 +26,7 @@ services:
     restart: no
     ports:
       # Valet Linux: valet proxy <project> http://localhost:8080
-      - "8080:80"
+      - "${DOCKER_NGINX_PORT}:80"
     environment:
       FASTCGI_PASS: app:9000
     volumes:
@@ -45,7 +45,7 @@ services:
     image: postgres:16
     restart: no
     ports:
-      - "5432:5432"
+      - "${DOCKER_DB_PORT}:5432"
     env_file:
       - .env
     volumes:
@@ -63,43 +63,12 @@ services:
     networks:
       - app
 
-  # ---- MySQL (descomente para usar no lugar do PostgreSQL) ----
-  # Lembre-se de:
-  #   1. Comentar o servico 'postgres' acima
-  #   2. Trocar depends_on do servico 'app' de 'postgres' para 'mysql'
-  #   3. Ajustar o .env: DB_CONNECTION=mysql / DB_HOST=mysql / DB_PORT=3306
-  #
-  # mysql:
-  #   container_name: mysql_app
-  #   image: mysql:8.4
-  #   restart: no
-  #   ports:
-  #     - "3306:3306"
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - mysql-app:/var/lib/mysql
-  #     - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-  #     - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-  #   environment:
-  #     MYSQL_DATABASE: ${DB_DATABASE}
-  #     MYSQL_USER: ${DB_USERNAME}
-  #     MYSQL_PASSWORD: ${DB_PASSWORD}
-  #     MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - app
-
   redis:
     container_name: redis_app
     image: redis:alpine
     restart: no
     ports:
-      - "6379:6379"
+      - "${DOCKER_REDIS_PORT}:6379"
     volumes:
       - redis-rjet:/data
     healthcheck:
@@ -114,9 +83,6 @@ volumes:
   pgsql-rjet:
     driver: local
     name: pgsql-rjet
-  # mysql-app:
-  #   driver: local
-  #   name: mysql-app
   redis-rjet:
     driver: local
     name: redis-rjet
