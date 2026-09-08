@@ -88,6 +88,6 @@ final class SupplierResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['companyPaymentMethods.company']);
+            ->with(['companyPaymentMethods.company', 'bankDetails.bank']);
     }
 }

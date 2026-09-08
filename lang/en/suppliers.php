@@ -25,6 +25,10 @@ return [
         'flags' => 'Status',
     ],
 
+    'hints' => [
+        'bank_details' => 'The fields shown depend on the deposit type (Pix or TED). These details are filled automatically on payment requests.',
+    ],
+
     'errors' => [
         'document_inconsistent_with_person_type' => 'The document is inconsistent with the person type.',
         'duplicate_document' => 'A supplier with this document already exists.',

@@ -22,6 +22,14 @@ final class BankException extends BusinessException
         );
     }
 
+    public static function cannotDeleteWithSupplierBankDetails(string $id): self
+    {
+        return new self(
+            message: "Cannot delete bank {$id}: it still has supplier bank details.",
+            userMessage: __('banks.errors.cannot_delete_with_supplier_bank_details'),
+        );
+    }
+
     public static function codeAlreadyExists(string $code): self
     {
         return new self(

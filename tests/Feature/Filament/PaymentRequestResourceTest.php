@@ -14,6 +14,7 @@ use App\Filament\Resources\PaymentRequests\Pages\ViewPaymentRequest;
 use App\Filament\Resources\PaymentRequests\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\PaymentRequests\RelationManagers\StatusHistoriesRelationManager;
 use App\Models\Appropriation;
+use App\Models\Approval;
 use App\Models\Attachment;
 use App\Models\Bank;
 use App\Models\Branch;
@@ -455,6 +456,47 @@ describe('create conditional form', function (): void {
             ]);
     });
 
+    it('fills pix bank details from the supplier cadastro when supplier_id is selected', function (): void {
+        actingAs(User::factory()->adm()->create());
+        $branch = Branch::factory()->create();
+        $supplier = Supplier::factory()->withPixDetails()->create();
+        $details = $supplier->load('bankDetails')->bankDetails;
+
+        Livewire::test(CreatePaymentRequest::class)
+            ->fillForm([
+                'branch_id' => $branch->getKey(),
+                'supplier_id' => $supplier->getKey(),
+            ])
+            ->assertSchemaStateSet([
+                'payment_method' => PaymentMethod::Deposit,
+                'bankDetails.deposit_type' => DepositType::Pix,
+                'bankDetails.pix_key_type' => PixKeyType::Email,
+                'bankDetails.pix_key' => $details->pix_key,
+            ]);
+    });
+
+    it('fills ted bank details from the supplier cadastro when supplier_id is selected', function (): void {
+        actingAs(User::factory()->adm()->create());
+        $branch = Branch::factory()->create();
+        $supplier = Supplier::factory()->withTransferDetails()->create();
+        $details = $supplier->load('bankDetails')->bankDetails;
+
+        Livewire::test(CreatePaymentRequest::class)
+            ->fillForm([
+                'branch_id' => $branch->getKey(),
+                'supplier_id' => $supplier->getKey(),
+            ])
+            ->assertSchemaStateSet([
+                'payment_method' => PaymentMethod::Deposit,
+                'bankDetails.deposit_type' => DepositType::Transfer,
+                'bankDetails.bank_id' => $details->bank_id,
+                'bankDetails.agency' => '1234',
+                'bankDetails.account_number' => '123456',
+                'bankDetails.account_digit' => '7',
+                'bankDetails.holder_document' => $details->holder_document,
+            ]);
+    });
+
     it('keeps cost_center_id options empty before a branch is selected', function (): void {
         actingAs(User::factory()->adm()->create());
         CostCenter::factory()->create();
@@ -557,7 +599,7 @@ describe('actions', function (): void {
         actingAs($operador);
 
         $request = PaymentRequest::factory()->depositPix()->requested()->create();
-        \App\Models\Approval::factory()
+        Approval::factory()
             ->approved()
             ->forPaymentRequest($request)
             ->forApprover($operador)

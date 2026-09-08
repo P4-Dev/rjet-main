@@ -25,6 +25,10 @@ return [
         'flags' => 'Status',
     ],
 
+    'hints' => [
+        'bank_details' => 'Os campos exibidos variam conforme o tipo de depósito (Pix ou TED). Esses dados são preenchidos automaticamente no lançamento.',
+    ],
+
     'errors' => [
         'document_inconsistent_with_person_type' => 'O documento informado é inconsistente com o tipo de pessoa.',
         'duplicate_document' => 'Já existe um fornecedor com este documento.',

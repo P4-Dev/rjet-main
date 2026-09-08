@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\DTOs\SupplierData;
 use App\Enums\PaymentMethod;
 use App\Enums\PersonType;
 use App\Exceptions\SupplierException;
@@ -11,7 +12,6 @@ use App\Models\Contact;
 use App\Models\Supplier;
 use App\Models\SupplierCompanyPaymentMethod;
 use App\Services\SupplierService;
-use App\DTOs\SupplierData;
 use Illuminate\Database\QueryException;
 
 it('enforces partial unique document on suppliers', function (): void {
@@ -65,8 +65,8 @@ it('rejects person type and document mismatch in SupplierService', function (): 
     expect(fn () => $service->create($data))->toThrow(SupplierException::class);
 });
 
-it('cascades soft delete of supplier to overrides addresses and contacts', function (): void {
-    $supplier = Supplier::factory()->pj()->create();
+it('cascades soft delete of supplier to overrides addresses contacts and bank details', function (): void {
+    $supplier = Supplier::factory()->pj()->withPixDetails()->create();
     $company = Company::factory()->create();
 
     $override = SupplierCompanyPaymentMethod::factory()->create([
@@ -84,15 +84,18 @@ it('cascades soft delete of supplier to overrides addresses and contacts', funct
         'contactable_id' => $supplier->getKey(),
     ]);
 
+    $details = $supplier->load('bankDetails')->bankDetails;
+
     $supplier->delete();
 
     expect($override->fresh()->trashed())->toBeTrue()
         ->and($address->fresh()->trashed())->toBeTrue()
-        ->and($contact->fresh()->trashed())->toBeTrue();
+        ->and($contact->fresh()->trashed())->toBeTrue()
+        ->and($details->fresh()->trashed())->toBeTrue();
 });
 
 it('restores supplier children deleted by cascade', function (): void {
-    $supplier = Supplier::factory()->pj()->create();
+    $supplier = Supplier::factory()->pj()->withPixDetails()->create();
     $company = Company::factory()->create();
 
     $override = SupplierCompanyPaymentMethod::factory()->create([
@@ -100,8 +103,11 @@ it('restores supplier children deleted by cascade', function (): void {
         'company_id' => $company->getKey(),
     ]);
 
+    $details = $supplier->load('bankDetails')->bankDetails;
+
     $supplier->delete();
     $supplier->restore();
 
-    expect($override->fresh()->trashed())->toBeFalse();
+    expect($override->fresh()->trashed())->toBeFalse()
+        ->and($details->fresh()->trashed())->toBeFalse();
 });

@@ -24,6 +24,7 @@ return [
     'errors' => [
         'cannot_delete_with_accounts' => 'Cannot delete the bank while linked bank accounts exist.',
         'cannot_delete_with_payment_request_bank_details' => 'Cannot delete the bank while linked payment request bank details exist.',
+        'cannot_delete_with_supplier_bank_details' => 'Cannot delete the bank while linked supplier bank details exist.',
         'code_already_exists' => 'A bank with this code already exists.',
     ],
 ];

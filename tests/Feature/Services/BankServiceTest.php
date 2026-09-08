@@ -6,6 +6,7 @@ use App\Exceptions\BankException;
 use App\Models\Bank;
 use App\Models\Branch;
 use App\Models\BranchBankAccount;
+use App\Models\Supplier;
 use App\Services\BankService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +27,14 @@ it('blocks soft delete when non-trashed accounts exist', function (): void {
         'bank_code' => $bank->code,
         'bank_name' => $bank->name,
     ]);
+
+    expect(fn () => app(BankService::class)->delete($bank))
+        ->toThrow(BankException::class);
+});
+
+it('blocks soft delete when non-trashed supplier bank details exist', function (): void {
+    $supplier = Supplier::factory()->withTransferDetails()->create();
+    $bank = $supplier->load('bankDetails.bank')->bankDetails->bank;
 
     expect(fn () => app(BankService::class)->delete($bank))
         ->toThrow(BankException::class);

@@ -73,4 +73,18 @@ final class SupplierFactory extends Factory
             ]);
         });
     }
+
+    public function withPixDetails(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'default_payment_method' => PaymentMethod::Deposit,
+        ])->has(SupplierBankDetailsFactory::new()->pix(), 'bankDetails');
+    }
+
+    public function withTransferDetails(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'default_payment_method' => PaymentMethod::Deposit,
+        ])->has(SupplierBankDetailsFactory::new()->transfer(), 'bankDetails');
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentRequests\Schemas;
 
 use App\Actions\PaymentRequest\ExtractBoletoDataAction;
+use App\Actions\PaymentRequest\ResolveSupplierBankDetailsAction;
 use App\Actions\PaymentRequest\ResolveSupplierPaymentMethodAction;
 use App\Enums\AccountType;
 use App\Enums\DepositType;
@@ -93,6 +94,8 @@ final class PaymentRequestForm
                                 if ($suggested !== null) {
                                     $set('payment_method', $suggested->value);
                                 }
+
+                                self::fillBankDetailsFromSupplier($state, $suggested, $set);
                             }),
 
                         Select::make('cost_center_id')
@@ -200,7 +203,7 @@ final class PaymentRequestForm
                                 ->required()
                                 ->native(false)
                                 ->live()
-                                ->afterStateUpdated(function (PaymentMethod|string|null $state, Set $set): void {
+                                ->afterStateUpdated(function (PaymentMethod|string|null $state, Get $get, Set $set): void {
                                     $method = $state instanceof PaymentMethod ? $state->value : $state;
 
                                     if ($method !== PaymentMethod::Boleto->value) {
@@ -209,18 +212,19 @@ final class PaymentRequestForm
                                     }
 
                                     if ($method !== PaymentMethod::Deposit->value) {
-                                        $set('bankDetails.deposit_type', null);
-                                        $set('bankDetails.pix_key_type', null);
-                                        $set('bankDetails.pix_key', null);
-                                        $set('bankDetails.pix_qr_code', null);
-                                        $set('bankDetails.holder_document', null);
-                                        $set('bankDetails.holder_name', null);
-                                        $set('bankDetails.bank_id', null);
-                                        $set('bankDetails.agency', null);
-                                        $set('bankDetails.agency_digit', null);
-                                        $set('bankDetails.account_number', null);
-                                        $set('bankDetails.account_digit', null);
-                                        $set('bankDetails.account_type', null);
+                                        self::clearDepositBankDetails($set);
+
+                                        return;
+                                    }
+
+                                    $supplierId = $get('supplier_id');
+
+                                    if (filled($supplierId)) {
+                                        self::fillBankDetailsFromSupplier(
+                                            (string) $supplierId,
+                                            PaymentMethod::Deposit,
+                                            $set,
+                                        );
                                     }
                                 }),
                         ]),
@@ -287,6 +291,7 @@ final class PaymentRequestForm
                                     ->maxLength(100)
                                     ->visible(fn (Get $get): bool => self::isPix($get))
                                     ->required(fn (Get $get): bool => self::isPix($get) && blank($get('pix_qr_code')))
+                                    ->placeholder(fn (Get $get): ?string => $get->enum('pix_key_type', PixKeyType::class, isNullable: true)?->inputPlaceholder())
                                     ->rules(fn (Get $get): array => $get->enum('pix_key_type', PixKeyType::class, isNullable: true)?->validationRules() ?? [])
                                     ->dehydrateStateUsing(function (?string $state, Get $get): ?string {
                                         $type = $get->enum('pix_key_type', PixKeyType::class, isNullable: true);
@@ -442,6 +447,46 @@ final class PaymentRequestForm
                             ->hiddenOn('edit'),
                     ]),
             ]);
+    }
+
+    private static function fillBankDetailsFromSupplier(string $supplierId, ?PaymentMethod $method, Set $set): void
+    {
+        if ($method !== PaymentMethod::Deposit) {
+            self::clearDepositBankDetails($set);
+
+            return;
+        }
+
+        $state = app(ResolveSupplierBankDetailsAction::class)($supplierId) ?? [];
+
+        $set('bankDetails.deposit_type', $state['deposit_type'] ?? null);
+        $set('bankDetails.pix_key_type', $state['pix_key_type'] ?? null);
+        $set('bankDetails.pix_key', $state['pix_key'] ?? null);
+        $set('bankDetails.pix_qr_code', null);
+        $set('bankDetails.holder_document', $state['holder_document'] ?? null);
+        $set('bankDetails.holder_name', $state['holder_name'] ?? null);
+        $set('bankDetails.bank_id', $state['bank_id'] ?? null);
+        $set('bankDetails.agency', $state['agency'] ?? null);
+        $set('bankDetails.agency_digit', $state['agency_digit'] ?? null);
+        $set('bankDetails.account_number', $state['account_number'] ?? null);
+        $set('bankDetails.account_digit', $state['account_digit'] ?? null);
+        $set('bankDetails.account_type', $state['account_type'] ?? null);
+    }
+
+    private static function clearDepositBankDetails(Set $set): void
+    {
+        $set('bankDetails.deposit_type', null);
+        $set('bankDetails.pix_key_type', null);
+        $set('bankDetails.pix_key', null);
+        $set('bankDetails.pix_qr_code', null);
+        $set('bankDetails.holder_document', null);
+        $set('bankDetails.holder_name', null);
+        $set('bankDetails.bank_id', null);
+        $set('bankDetails.agency', null);
+        $set('bankDetails.agency_digit', null);
+        $set('bankDetails.account_number', null);
+        $set('bankDetails.account_digit', null);
+        $set('bankDetails.account_type', null);
     }
 
     private static function paymentMethod(Get $get): ?PaymentMethod

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Suppliers\Schemas;
 
+use App\Enums\DepositType;
+use App\Enums\PaymentMethod;
+use App\Models\Supplier;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -54,6 +57,43 @@ final class SupplierInfolist
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+
+                Section::make(__('payment_request_bank_details.label'))
+                    ->columns(2)
+                    ->visible(fn (Supplier $record): bool => $record->default_payment_method === PaymentMethod::Deposit)
+                    ->schema([
+                        TextEntry::make('bankDetails.deposit_type')
+                            ->label(__('payment_request_bank_details.fields.deposit_type'))
+                            ->badge()
+                            ->placeholder('—'),
+                        TextEntry::make('bankDetails.pix_key_type')
+                            ->label(__('payment_request_bank_details.fields.pix_key_type'))
+                            ->badge()
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Pix),
+                        TextEntry::make('bankDetails.pix_key')
+                            ->label(__('payment_request_bank_details.fields.pix_key'))
+                            ->copyable()
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Pix),
+                        TextEntry::make('bankDetails.holder_name')
+                            ->label(__('payment_request_bank_details.fields.holder_name'))
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                        TextEntry::make('bankDetails.holder_document')
+                            ->label(__('payment_request_bank_details.fields.holder_document'))
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                        TextEntry::make('bankDetails.bank.name')
+                            ->label(__('payment_request_bank_details.fields.bank_id'))
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                        TextEntry::make('bankDetails.agency')
+                            ->label(__('payment_request_bank_details.fields.agency'))
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                        TextEntry::make('bankDetails.account_number')
+                            ->label(__('payment_request_bank_details.fields.account_number'))
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                        TextEntry::make('bankDetails.account_type')
+                            ->label(__('payment_request_bank_details.fields.account_type'))
+                            ->badge()
+                            ->visible(fn (Supplier $record): bool => $record->bankDetails?->deposit_type === DepositType::Transfer),
+                    ]),
 
                 Section::make(__('supplier_company_payment_methods.plural'))
                     ->schema([

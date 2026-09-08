@@ -67,6 +67,10 @@ final class BankService
         if ($bank->paymentRequestBankDetails()->exists()) {
             throw BankException::cannotDeleteWithPaymentRequestBankDetails((string) $bank->getKey());
         }
+
+        if ($bank->supplierBankDetails()->exists()) {
+            throw BankException::cannotDeleteWithSupplierBankDetails((string) $bank->getKey());
+        }
     }
 
     public function syncBranchAccountSnapshots(Bank $bank): void
