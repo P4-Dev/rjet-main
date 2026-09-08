@@ -98,6 +98,7 @@ final class SupplierForm
                             ->label(__('suppliers.fields.default_payment_method'))
                             ->options(PaymentMethod::class)
                             ->required()
+                            ->columnSpanFull()
                             ->native(false)
                             ->live()
                             ->afterStateUpdated(function (PaymentMethod|string|null $state, Set $set): void {
@@ -120,7 +121,7 @@ final class SupplierForm
 
                         Section::make(__('payment_request_bank_details.label'))
                             ->description(__('suppliers.hints.bank_details'))
-                            ->columns(2)
+                            ->columnSpanFull()
                             ->relationship('bankDetails')
                             ->schema([
                                 Select::make('deposit_type')
