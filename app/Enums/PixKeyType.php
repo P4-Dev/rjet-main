@@ -42,6 +42,16 @@ enum PixKeyType: string implements HasColor, HasIcon, HasLabel
         };
     }
 
+    public function inputPlaceholder(): string
+    {
+        return match ($this) {
+            self::Cpf => '000.000.000-00',
+            self::Phone => '11999999999',
+            self::Email => 'email@exemplo.com',
+            self::Random => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        };
+    }
+
     /**
      * @return array<int, string|ValidationRule>
      */

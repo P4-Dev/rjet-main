@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy(SupplierObserver::class)]
@@ -66,6 +67,14 @@ final class Supplier extends Model
     public function paymentRequests(): HasMany
     {
         return $this->hasMany(PaymentRequest::class);
+    }
+
+    /**
+     * @return HasOne<SupplierBankDetails, $this>
+     */
+    public function bankDetails(): HasOne
+    {
+        return $this->hasOne(SupplierBankDetails::class);
     }
 
     public function paymentMethodFor(Company $company): PaymentMethod

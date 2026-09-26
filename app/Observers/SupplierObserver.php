@@ -17,6 +17,7 @@ final class SupplierObserver
     public function deleted(Supplier $supplier): void
     {
         $supplier->companyPaymentMethods()->delete();
+        $supplier->bankDetails()->delete();
         $supplier->addresses()->delete();
         $supplier->contacts()->delete();
     }
@@ -34,6 +35,10 @@ final class SupplierObserver
             ->where('deleted_at', '>=', $threshold)
             ->restore();
 
+        $supplier->bankDetails()->onlyTrashed()
+            ->where('deleted_at', '>=', $threshold)
+            ->restore();
+
         $supplier->addresses()->onlyTrashed()
             ->where('deleted_at', '>=', $threshold)
             ->restore();
@@ -48,6 +53,7 @@ final class SupplierObserver
     public function forceDeleted(Supplier $supplier): void
     {
         $supplier->companyPaymentMethods()->withTrashed()->forceDelete();
+        $supplier->bankDetails()->withTrashed()->forceDelete();
         $supplier->addresses()->withTrashed()->forceDelete();
         $supplier->contacts()->withTrashed()->forceDelete();
     }

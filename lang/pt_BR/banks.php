@@ -24,6 +24,7 @@ return [
     'errors' => [
         'cannot_delete_with_accounts' => 'Não é possível excluir o banco enquanto houver contas bancárias vinculadas.',
         'cannot_delete_with_payment_request_bank_details' => 'Não é possível excluir o banco enquanto houver dados bancários de solicitações vinculados.',
+        'cannot_delete_with_supplier_bank_details' => 'Não é possível excluir o banco enquanto houver dados bancários de fornecedores vinculados.',
         'code_already_exists' => 'Já existe um banco com este código.',
     ],
 ];

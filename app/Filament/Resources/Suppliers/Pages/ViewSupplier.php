@@ -18,7 +18,7 @@ final class ViewSupplier extends ViewRecord
         return tap(parent::getRecord(), function (Model $record): void {
             // Livewire rehydrates the model by key only; the Infolist stays mounted
             // alongside relation manager tabs and needs nested company on overrides.
-            $record->loadMissing(['companyPaymentMethods.company']);
+            $record->loadMissing(['companyPaymentMethods.company', 'bankDetails.bank']);
         });
     }
 
