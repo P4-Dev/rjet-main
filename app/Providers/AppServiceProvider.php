@@ -4,35 +4,45 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\PaymentRequest\PaymentRequestBatchImported;
 use App\Events\PaymentRequest\PaymentRequestCreated;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
 use App\Integrations\Ocr\BoletoOcrClient;
 use App\Integrations\Ocr\LocalBoletoOcrClient;
 use App\Integrations\Ocr\NullBoletoOcrClient;
+use App\Integrations\Spreadsheet\OpenSpoutSpreadsheetReader;
+use App\Integrations\Spreadsheet\SpreadsheetReader;
 use App\Listeners\PaymentRequest\LogPaymentRequestActivity;
+use App\Listeners\PaymentRequest\LogPaymentRequestBatchImported;
+use App\Listeners\PaymentRequest\NotifyImportBatchCompleted;
+use App\Models\Appropriation;
 use App\Models\Approval;
 use App\Models\ApprovalRule;
-use App\Models\Appropriation;
 use App\Models\Attachment;
 use App\Models\Bank;
 use App\Models\Branch;
 use App\Models\BranchBankAccount;
 use App\Models\Company;
 use App\Models\CostCenter;
+use App\Models\ImportBatch;
+use App\Models\ImportTemplate;
 use App\Models\PaymentRequest;
 use App\Models\PaymentRequestStatusHistory;
 use App\Models\Supplier;
 use App\Models\SupplierCompanyPaymentMethod;
 use App\Models\User;
+use App\Observers\ImportBatchObserver;
+use App\Policies\AppropriationPolicy;
 use App\Policies\ApprovalPolicy;
 use App\Policies\ApprovalRulePolicy;
-use App\Policies\AppropriationPolicy;
 use App\Policies\AttachmentPolicy;
 use App\Policies\BankPolicy;
 use App\Policies\BranchBankAccountPolicy;
 use App\Policies\BranchPolicy;
 use App\Policies\CompanyPolicy;
 use App\Policies\CostCenterPolicy;
+use App\Policies\ImportBatchPolicy;
+use App\Policies\ImportTemplatePolicy;
 use App\Policies\PaymentRequestPolicy;
 use App\Policies\PaymentRequestStatusHistoryPolicy;
 use App\Policies\SupplierCompanyPaymentMethodPolicy;
@@ -64,6 +74,8 @@ class AppServiceProvider extends ServiceProvider
         PaymentRequestStatusHistory::class => PaymentRequestStatusHistoryPolicy::class,
         ApprovalRule::class => ApprovalRulePolicy::class,
         Approval::class => ApprovalPolicy::class,
+        ImportTemplate::class => ImportTemplatePolicy::class,
+        ImportBatch::class => ImportBatchPolicy::class,
     ];
 
     public function register(): void
@@ -72,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
             'null' => new NullBoletoOcrClient,
             default => new LocalBoletoOcrClient,
         });
+
+        $this->app->bind(SpreadsheetReader::class, OpenSpoutSpreadsheetReader::class);
     }
 
     public function boot(): void
@@ -88,8 +102,12 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy($model, $policy);
         }
 
+        ImportBatch::observe(ImportBatchObserver::class);
+
         Event::listen(PaymentRequestCreated::class, [LogPaymentRequestActivity::class, 'handleCreated']);
         Event::listen(PaymentRequestStatusChanged::class, [LogPaymentRequestActivity::class, 'handleStatusChanged']);
+        Event::listen(PaymentRequestBatchImported::class, [LogPaymentRequestBatchImported::class, 'handle']);
+        Event::listen(PaymentRequestBatchImported::class, [NotifyImportBatchCompleted::class, 'handle']);
         // Approval / PaymentRequest notification listeners are auto-discovered via handle().
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'view_payment_request' => 'View request',
+    'view_import_batch' => 'View import batch',
 
     'approval_assigned' => [
         'subject' => 'New payment request awaiting your approval',
@@ -24,5 +25,9 @@ return [
     'approval_sla_breached' => [
         'title' => 'Approval SLA breached',
         'body' => 'A pending approval exceeded its SLA due date.',
+    ],
+    'payment_request_batch_imported' => [
+        'subject' => 'Batch import completed',
+        'body' => 'Import completed: :success success(es), :errors error(s).',
     ],
 ];

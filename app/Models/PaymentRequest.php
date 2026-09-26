@@ -44,6 +44,7 @@ final class PaymentRequest extends Model
         'due_date',
         'notes',
         'has_attachments',
+        'import_batch_id',
     ];
 
     /**
@@ -92,6 +93,14 @@ final class PaymentRequest extends Model
     public function appropriation(): BelongsTo
     {
         return $this->belongsTo(Appropriation::class);
+    }
+
+    /**
+     * @return BelongsTo<ImportBatch, $this>
+     */
+    public function importBatch(): BelongsTo
+    {
+        return $this->belongsTo(ImportBatch::class);
     }
 
     /**

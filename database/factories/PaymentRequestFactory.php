@@ -6,15 +6,15 @@ namespace Database\Factories;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
+use App\Models\Appropriation;
 use App\Models\Approval;
 use App\Models\ApprovalRule;
-use App\Models\Appropriation;
 use App\Models\Attachment;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\CostCenter;
+use App\Models\ImportBatch;
 use App\Models\PaymentRequest;
-use App\Models\PaymentRequestBankDetails;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -186,5 +186,12 @@ final class PaymentRequestFactory extends Factory
                 'appropriation_id' => $appropriation->getKey(),
             ];
         });
+    }
+
+    public function fromImportBatch(ImportBatch $batch): static
+    {
+        return $this->state(fn (): array => [
+            'import_batch_id' => $batch->getKey(),
+        ]);
     }
 }

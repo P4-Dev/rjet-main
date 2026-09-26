@@ -20,6 +20,7 @@ final readonly class PaymentRequestData
         public CarbonImmutable $dueDate,
         public ?string $notes = null,
         public ?PaymentRequestBankDetailsData $bankDetails = null,
+        public ?string $importBatchId = null,
     ) {}
 
     /**
@@ -57,6 +58,11 @@ final readonly class PaymentRequestData
             dueDate: $dueDate,
             notes: isset($data['notes']) ? ($data['notes'] !== null ? (string) $data['notes'] : null) : null,
             bankDetails: $bankDetails,
+            importBatchId: isset($data['import_batch_id']) || isset($data['importBatchId'])
+                ? (($data['import_batch_id'] ?? $data['importBatchId'] ?? null) !== null
+                    ? (string) ($data['import_batch_id'] ?? $data['importBatchId'])
+                    : null)
+                : null,
         );
     }
 
@@ -75,6 +81,7 @@ final readonly class PaymentRequestData
             'discount_amount' => $this->discountAmount,
             'due_date' => $this->dueDate->toDateString(),
             'notes' => $this->notes,
+            'import_batch_id' => $this->importBatchId,
         ];
     }
 }

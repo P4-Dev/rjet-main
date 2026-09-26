@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('import_templates', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->string('name', 120);
+            $table->foreignUuid('company_id')->nullable()->index()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('branch_id')->nullable()->index()->constrained('branches')->nullOnDelete();
+            $table->string('accepted_format', 10);
+            $table->boolean('is_active')->default(true);
+            $table->foreignUuid('created_by')->nullable()->index()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('updated_by')->nullable()->index()->constrained('users')->nullOnDelete();
+            $table->timestampsTz();
+            $table->softDeletesTz();
+        });
+
+        if ($this->supportsPartialIndexes()) {
+            DB::statement(
+                'CREATE UNIQUE INDEX import_templates_name_unique ON import_templates (name) WHERE deleted_at IS NULL'
+            );
+        }
+    }
+
+    public function down(): void
+    {
+        if ($this->supportsPartialIndexes()) {
+            DB::statement('DROP INDEX IF EXISTS import_templates_name_unique');
+        }
+
+        Schema::dropIfExists('import_templates');
+    }
+
+    private function supportsPartialIndexes(): bool
+    {
+        return in_array(Schema::getConnection()->getDriverName(), ['pgsql', 'sqlite'], true);
+    }
+};

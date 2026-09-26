@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'fields' => [
+        'id' => 'ID',
         'name' => 'Name',
         'legal_name' => 'Legal name',
         'document' => 'Tax ID',

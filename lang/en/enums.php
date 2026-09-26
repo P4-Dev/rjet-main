@@ -64,4 +64,41 @@ return [
         'approved' => 'Approved',
         'rejected' => 'Rejected',
     ],
+
+    'import_file_format' => [
+        'csv' => 'CSV',
+        'xlsx' => 'Excel (XLSX)',
+    ],
+
+    'import_batch_status' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'failed' => 'Failed',
+    ],
+
+    'import_target_field' => [
+        'branch_document' => 'Branch CNPJ',
+        'supplier_document' => 'Supplier CPF/CNPJ',
+        'cost_center_code' => 'Cost center code',
+        'appropriation_code' => 'Appropriation code',
+        'payment_method' => 'Payment method',
+        'gross_amount' => 'Gross amount',
+        'discount_amount' => 'Discount',
+        'due_date' => 'Due date',
+        'notes' => 'Notes',
+        'deposit_type' => 'Deposit type',
+        'digitable_line' => 'Digitable line',
+        'pix_key_type' => 'Pix key type',
+        'pix_key' => 'Pix key',
+        'pix_qr_code' => 'Pix QR code',
+        'holder_name' => 'Holder name',
+        'holder_document' => 'Holder document',
+        'bank_code' => 'Bank code',
+        'agency' => 'Agency',
+        'agency_digit' => 'Agency digit',
+        'account_number' => 'Account number',
+        'account_digit' => 'Account digit',
+        'account_type' => 'Account type',
+    ],
 ];

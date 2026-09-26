@@ -30,6 +30,7 @@ final class DatabaseSeeder extends Seeder
                 DevelopmentSeeder::class,
                 PaymentRequestSeeder::class,
                 ApprovalRuleSeeder::class,
+                ImportTemplateSeeder::class,
             ]);
         }
     }

@@ -21,4 +21,12 @@ return [
         'enabled' => (bool) env('RJET_OCR_ENABLED', true),
         'driver' => env('RJET_OCR_DRIVER', 'local'),
     ],
+
+    'imports' => [
+        'disk' => env('RJET_IMPORTS_DISK', env('FILESYSTEM_DISK', 'local')),
+        'directory' => 'imports',
+        'max_kilobytes' => (int) env('RJET_IMPORTS_MAX_KILOBYTES', 5120),
+        'max_rows' => (int) env('RJET_IMPORTS_MAX_ROWS', 500),
+        'accepted_extensions' => ['csv', 'xlsx'],
+    ],
 ];

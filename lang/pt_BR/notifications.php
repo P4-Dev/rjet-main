@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'view_payment_request' => 'Ver solicitação',
+    'view_import_batch' => 'Ver lote de importação',
 
     'approval_assigned' => [
         'subject' => 'Nova solicitação aguardando sua aprovação',
@@ -24,5 +25,9 @@ return [
     'approval_sla_breached' => [
         'title' => 'SLA de aprovação estourado',
         'body' => 'Uma aprovação pendente ultrapassou o prazo de SLA.',
+    ],
+    'payment_request_batch_imported' => [
+        'subject' => 'Importação em lote concluída',
+        'body' => 'Importação concluída: :success sucesso(s), :errors erro(s).',
     ],
 ];

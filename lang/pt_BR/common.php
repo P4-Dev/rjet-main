@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'fields' => [
+        'id' => 'ID',
         'name' => 'Nome',
         'legal_name' => 'Razão social',
         'document' => 'CNPJ',
