@@ -101,4 +101,26 @@ return [
         'account_digit' => 'Account digit',
         'account_type' => 'Account type',
     ],
+
+    'attachment_batch_status' => [
+        'pending_classification' => 'Pending classification',
+        'classified' => 'Classified',
+        'renaming' => 'Renaming',
+        'renamed' => 'Renamed',
+        'partially_failed' => 'Partially failed',
+        'failed' => 'Failed',
+    ],
+
+    'attachment_batch_item_status' => [
+        'pending' => 'Pending',
+        'classified' => 'Classified',
+        'renamed' => 'Renamed',
+        'failed' => 'Failed',
+    ],
+
+    'attachment_batch_destination_type' => [
+        'payment_request' => 'Payment request',
+        'supplier' => 'Supplier',
+        'operational_category' => 'Operational category',
+    ],
 ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'view_payment_request' => 'Ver solicitação',
     'view_import_batch' => 'Ver lote de importação',
+    'view_attachment_batch' => 'Ver lote de anexos',
 
     'approval_assigned' => [
         'subject' => 'Nova solicitação aguardando sua aprovação',
@@ -29,5 +30,10 @@ return [
     'payment_request_batch_imported' => [
         'subject' => 'Importação em lote concluída',
         'body' => 'Importação concluída: :success sucesso(s), :errors erro(s).',
+    ],
+
+    'attachment_batch_renamed' => [
+        'subject' => 'Nomenclatura do lote de anexos concluída',
+        'body' => ':count arquivo(s) renomeado(s) com o padrão AAAAMMDD_HHMMSS_SEQ.',
     ],
 ];

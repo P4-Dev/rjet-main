@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Attachment;
+use App\Models\AttachmentBatch;
 use App\Models\User;
 
 final class AttachmentPolicy
@@ -16,6 +17,15 @@ final class AttachmentPolicy
 
     public function view(User $user, Attachment $attachment): bool
     {
+        if ($attachment->attachable_type === (new AttachmentBatch)->getMorphClass()) {
+            /** Eager-loaded morphs skip trashed batches (null), so those still fall back to a withTrashed lookup. */
+            $batch = $attachment->relationLoaded('attachable') && $attachment->attachable instanceof AttachmentBatch
+                ? $attachment->attachable
+                : AttachmentBatch::withTrashed()->find($attachment->attachable_id);
+
+            return $batch !== null && $user->can('view', $batch);
+        }
+
         if ($attachment->attachable === null) {
             return $user->isAdm();
         }

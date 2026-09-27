@@ -101,4 +101,26 @@ return [
         'account_digit' => 'Dígito da conta',
         'account_type' => 'Tipo de conta',
     ],
+
+    'attachment_batch_status' => [
+        'pending_classification' => 'Pendente de classificação',
+        'classified' => 'Classificado',
+        'renaming' => 'Renomeando',
+        'renamed' => 'Renomeado',
+        'partially_failed' => 'Falhas parciais',
+        'failed' => 'Falhou',
+    ],
+
+    'attachment_batch_item_status' => [
+        'pending' => 'Pendente',
+        'classified' => 'Classificado',
+        'renamed' => 'Renomeado',
+        'failed' => 'Falhou',
+    ],
+
+    'attachment_batch_destination_type' => [
+        'payment_request' => 'Solicitação de pagamento',
+        'supplier' => 'Fornecedor',
+        'operational_category' => 'Categoria operacional',
+    ],
 ];

@@ -10,13 +10,26 @@ use App\Exceptions\AttachmentException;
 use App\Models\Attachment;
 use App\Models\PaymentRequest;
 use App\Models\User;
+use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 final class AttachmentService
 {
+    /**
+     * @var array<string, string>
+     */
+    private const MIME_EXTENSIONS = [
+        'application/pdf' => 'pdf',
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+    ];
+
     /**
      * @throws AttachmentException
      */
@@ -99,6 +112,90 @@ final class AttachmentService
         }
 
         return $attachments;
+    }
+
+    /**
+     * @throws AttachmentException
+     */
+    public function assertUploadedFileIsAllowed(UploadedFile $file): void
+    {
+        $this->assertMimeAndSize((string) ($file->getMimeType() ?? ''), (int) $file->getSize());
+    }
+
+    public function extensionFor(string $mime, string $originalName): string
+    {
+        if (isset(self::MIME_EXTENSIONS[$mime])) {
+            return self::MIME_EXTENSIONS[$mime];
+        }
+
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+        return $extension !== '' ? $extension : 'bin';
+    }
+
+    public function isPathTaken(string $disk, string $path, ?string $ignoreAttachmentId = null): bool
+    {
+        if (Storage::disk($disk)->exists($path)) {
+            return true;
+        }
+
+        return Attachment::withTrashed()
+            ->where('disk', $disk)
+            ->where('path', $path)
+            ->when($ignoreAttachmentId !== null, fn ($query) => $query->whereKeyNot($ignoreAttachmentId))
+            ->exists();
+    }
+
+    /**
+     * Moves the physical file and persists the new path (plus extra attributes) on the same row.
+     * $withinTransaction runs in the same DB transaction; the file is moved back when it fails.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @param  (Closure(Attachment): void)|null  $withinTransaction
+     *
+     * @throws AttachmentException
+     */
+    public function moveAndUpdatePath(
+        Attachment $attachment,
+        string $targetPath,
+        array $attributes = [],
+        ?Closure $withinTransaction = null,
+    ): Attachment {
+        $disk = Storage::disk($attachment->disk);
+        $originalPath = $attachment->path;
+
+        if ($originalPath !== $targetPath) {
+            if (! $disk->exists($originalPath) || ! $disk->move($originalPath, $targetPath)) {
+                throw AttachmentException::storageMoveFailed((string) $attachment->getKey());
+            }
+        }
+
+        try {
+            DB::transaction(function () use ($attachment, $attributes, $targetPath, $withinTransaction): void {
+                $attachment->forceFill([...$attributes, 'path' => $targetPath])->save();
+
+                if ($withinTransaction !== null) {
+                    $withinTransaction($attachment);
+                }
+            });
+        } catch (Throwable $e) {
+            if ($originalPath !== $targetPath) {
+                $disk->move($targetPath, $originalPath);
+            }
+
+            throw $e;
+        }
+
+        return $attachment;
+    }
+
+    public function syncAttachableFlags(?Model ...$attachables): void
+    {
+        foreach ($attachables as $attachable) {
+            if ($attachable !== null && method_exists($attachable, 'syncHasAttachmentsFlag')) {
+                $attachable->syncHasAttachmentsFlag();
+            }
+        }
     }
 
     public function delete(Attachment $attachment): void

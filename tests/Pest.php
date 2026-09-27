@@ -1,5 +1,12 @@
 <?php
 
+use App\Models\AttachmentBatch;
+use App\Models\AttachmentBatchItem;
+use App\Services\AttachmentBatchService;
+use Database\Factories\AttachmentBatchFactory;
+use Database\Factories\AttachmentBatchItemFactory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /*
@@ -14,7 +21,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -46,4 +53,32 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Creates a batch with one item per entry; each entry may customize the item factory.
+ * Physical files are written to the (faked) attachments disk.
+ *
+ * @param  list<(Closure(AttachmentBatchItemFactory): AttachmentBatchItemFactory)|null>  $itemStates
+ */
+function createAttachmentBatchWithItems(
+    AttachmentBatchFactory $batchFactory,
+    array $itemStates,
+): AttachmentBatch {
+    $batch = $batchFactory->create();
+
+    foreach (array_values($itemStates) as $index => $state) {
+        $factory = AttachmentBatchItem::factory()
+            ->for($batch, 'batch')
+            ->state(['sort_order' => $index]);
+
+        $item = ($state !== null ? $state($factory) : $factory)->create();
+        $attachment = $item->attachment;
+
+        Storage::disk($attachment->disk)->put($attachment->path, 'file-'.$index);
+    }
+
+    app(AttachmentBatchService::class)->syncCounters($batch);
+
+    return $batch->refresh();
 }

@@ -19,6 +19,8 @@ use App\Models\Appropriation;
 use App\Models\Approval;
 use App\Models\ApprovalRule;
 use App\Models\Attachment;
+use App\Models\AttachmentBatch;
+use App\Models\AttachmentBatchItem;
 use App\Models\Bank;
 use App\Models\Branch;
 use App\Models\BranchBankAccount;
@@ -31,10 +33,13 @@ use App\Models\PaymentRequestStatusHistory;
 use App\Models\Supplier;
 use App\Models\SupplierCompanyPaymentMethod;
 use App\Models\User;
+use App\Observers\AttachmentBatchObserver;
 use App\Observers\ImportBatchObserver;
 use App\Policies\AppropriationPolicy;
 use App\Policies\ApprovalPolicy;
 use App\Policies\ApprovalRulePolicy;
+use App\Policies\AttachmentBatchItemPolicy;
+use App\Policies\AttachmentBatchPolicy;
 use App\Policies\AttachmentPolicy;
 use App\Policies\BankPolicy;
 use App\Policies\BranchBankAccountPolicy;
@@ -76,6 +81,8 @@ class AppServiceProvider extends ServiceProvider
         Approval::class => ApprovalPolicy::class,
         ImportTemplate::class => ImportTemplatePolicy::class,
         ImportBatch::class => ImportBatchPolicy::class,
+        AttachmentBatch::class => AttachmentBatchPolicy::class,
+        AttachmentBatchItem::class => AttachmentBatchItemPolicy::class,
     ];
 
     public function register(): void
@@ -96,6 +103,7 @@ class AppServiceProvider extends ServiceProvider
             'supplier' => Supplier::class,
             'payment_request' => PaymentRequest::class,
             'user' => User::class,
+            'attachment_batch' => AttachmentBatch::class,
         ]);
 
         foreach (self::POLICIES as $model => $policy) {
@@ -103,11 +111,13 @@ class AppServiceProvider extends ServiceProvider
         }
 
         ImportBatch::observe(ImportBatchObserver::class);
+        AttachmentBatch::observe(AttachmentBatchObserver::class);
 
         Event::listen(PaymentRequestCreated::class, [LogPaymentRequestActivity::class, 'handleCreated']);
         Event::listen(PaymentRequestStatusChanged::class, [LogPaymentRequestActivity::class, 'handleStatusChanged']);
         Event::listen(PaymentRequestBatchImported::class, [LogPaymentRequestBatchImported::class, 'handle']);
         Event::listen(PaymentRequestBatchImported::class, [NotifyImportBatchCompleted::class, 'handle']);
         // Approval / PaymentRequest notification listeners are auto-discovered via handle().
+        // Attachment listeners rely on discovery only: explicit Event::listen would register them twice.
     }
 }

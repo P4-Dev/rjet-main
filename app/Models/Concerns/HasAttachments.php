@@ -19,7 +19,8 @@ trait HasAttachments
 
     public function syncHasAttachmentsFlag(): void
     {
-        if (! $this->isFillable('has_attachments') && ! array_key_exists('has_attachments', $this->getAttributes())) {
+        // getFillable() instead of isFillable(): the latter is always true while models are unguarded (factories, seeders).
+        if (! in_array('has_attachments', $this->getFillable(), true) && ! array_key_exists('has_attachments', $this->getAttributes())) {
             return;
         }
 

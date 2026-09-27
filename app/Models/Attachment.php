@@ -33,6 +33,7 @@ final class Attachment extends Model
         'disk',
         'path',
         'original_name',
+        'standardized_name',
         'mime_type',
         'size',
         'sort_order',
@@ -56,6 +57,11 @@ final class Attachment extends Model
     public function attachable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function displayName(): string
+    {
+        return $this->standardized_name ?? $this->original_name;
     }
 
     public function isPdf(): bool

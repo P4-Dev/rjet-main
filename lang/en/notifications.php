@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'view_payment_request' => 'View request',
     'view_import_batch' => 'View import batch',
+    'view_attachment_batch' => 'View attachment batch',
 
     'approval_assigned' => [
         'subject' => 'New payment request awaiting your approval',
@@ -29,5 +30,10 @@ return [
     'payment_request_batch_imported' => [
         'subject' => 'Batch import completed',
         'body' => 'Import completed: :success success(es), :errors error(s).',
+    ],
+
+    'attachment_batch_renamed' => [
+        'subject' => 'Attachment batch naming completed',
+        'body' => ':count file(s) renamed with the YYYYMMDD_HHMMSS_SEQ pattern.',
     ],
 ];

@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\AttachmentType;
 use App\Models\Attachment;
+use App\Models\AttachmentBatch;
 use App\Models\PaymentRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -40,6 +41,20 @@ final class AttachmentFactory extends Factory
             'type' => AttachmentType::Boleto,
             'mime_type' => 'application/pdf',
             'original_name' => 'boleto.pdf',
+        ]);
+    }
+
+    public function withStandardizedName(string $name = '20260926_101500_001.pdf'): static
+    {
+        return $this->state(fn (): array => ['standardized_name' => $name]);
+    }
+
+    public function forBatch(AttachmentBatch $batch): static
+    {
+        return $this->state(fn (): array => [
+            'attachable_type' => $batch->getMorphClass(),
+            'attachable_id' => $batch->getKey(),
+            'path' => 'attachments/attachment_batch/'.$batch->getKey().'/'.fake()->uuid().'.pdf',
         ]);
     }
 
