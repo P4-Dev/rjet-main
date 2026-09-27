@@ -10,10 +10,12 @@ use App\Enums\PaymentRequestStatus;
 use App\Enums\PixKeyType;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
 use App\Exceptions\PaymentRequestException;
-use App\Models\Approval;
 use App\Models\ApprovalRule;
 use App\Models\Branch;
 use App\Models\CostCenter;
+use App\Models\PaymentRequest;
+use App\Models\PaymentSettlement;
+use App\Models\PaymentSettlementItem;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\ApprovalService;
@@ -67,11 +69,39 @@ it('transitions requested to launched and records history', function (): void {
     Event::assertDispatched(PaymentRequestStatusChanged::class);
 });
 
-it('transitions launched to settled', function (): void {
+it('transitions launched to settled through a draft settlement containing the request', function (): void {
     $this->service->transitionStatus($this->request, PaymentRequestStatus::Launched, $this->actor);
-    $settled = $this->service->transitionStatus($this->request->fresh(), PaymentRequestStatus::Settled, $this->actor);
+    $settlement = draftSettlementFor($this->request->fresh());
+
+    $settled = $this->service->transitionStatus(
+        $this->request->fresh(),
+        PaymentRequestStatus::Settled,
+        $this->actor,
+        settlement: $settlement,
+    );
 
     expect($settled->status)->toBe(PaymentRequestStatus::Settled);
+});
+
+it('rejects launched to settled without a settlement', function (): void {
+    $this->service->transitionStatus($this->request, PaymentRequestStatus::Launched, $this->actor);
+
+    expect(fn () => $this->service->transitionStatus($this->request->fresh(), PaymentRequestStatus::Settled, $this->actor))
+        ->toThrow(fn (PaymentRequestException $exception) => expect($exception->getUserMessage())->toBe(__('payment_requests.errors.settlement_required')));
+
+    expect($this->request->fresh()->status)->toBe(PaymentRequestStatus::Launched);
+});
+
+it('rejects launched to settled with a settlement that does not contain the request', function (): void {
+    $this->service->transitionStatus($this->request, PaymentRequestStatus::Launched, $this->actor);
+    $otherSettlement = PaymentSettlement::factory()->forBranch($this->request->branch)->create();
+
+    expect(fn () => $this->service->transitionStatus(
+        $this->request->fresh(),
+        PaymentRequestStatus::Settled,
+        $this->actor,
+        settlement: $otherSettlement,
+    ))->toThrow(fn (PaymentRequestException $exception) => expect($exception->getUserMessage())->toBe(__('payment_requests.errors.settlement_required')));
 });
 
 it('rejects invalid transitions', function (PaymentRequestStatus $to): void {
@@ -83,7 +113,12 @@ it('rejects invalid transitions', function (PaymentRequestStatus $to): void {
 
 it('rejects regression from settled', function (): void {
     $this->service->transitionStatus($this->request, PaymentRequestStatus::Launched, $this->actor);
-    $settled = $this->service->transitionStatus($this->request->fresh(), PaymentRequestStatus::Settled, $this->actor);
+    $settled = $this->service->transitionStatus(
+        $this->request->fresh(),
+        PaymentRequestStatus::Settled,
+        $this->actor,
+        settlement: draftSettlementFor($this->request->fresh()),
+    );
 
     expect(fn () => $this->service->transitionStatus($settled, PaymentRequestStatus::Launched, $this->actor))
         ->toThrow(PaymentRequestException::class);
@@ -100,3 +135,11 @@ it('rejects status transitions by cliente even when the enum allows it', functio
 
     expect($this->request->fresh()->status)->toBe(PaymentRequestStatus::Requested);
 });
+
+function draftSettlementFor(PaymentRequest $request): PaymentSettlement
+{
+    $settlement = PaymentSettlement::factory()->forBranch($request->branch)->create();
+    PaymentSettlementItem::factory()->for($settlement, 'settlement')->forPaymentRequest($request)->create();
+
+    return $settlement;
+}

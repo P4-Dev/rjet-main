@@ -21,4 +21,9 @@ return [
     'sections' => [
         'bank_account_info' => 'Bank details',
     ],
+
+    'errors' => [
+        'has_cnab_config' => 'This account has a live CNAB configuration. Delete the configuration first.',
+        'branch_locked' => 'The branch of this account cannot change because it was already used in settlements or CNAB configurations.',
+    ],
 ];

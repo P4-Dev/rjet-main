@@ -29,4 +29,19 @@ return [
         'max_rows' => (int) env('RJET_IMPORTS_MAX_ROWS', 500),
         'accepted_extensions' => ['csv', 'xlsx'],
     ],
+
+    'cnab' => [
+        'disk' => env('RJET_CNAB_DISK', env('FILESYSTEM_DISK', 'local')),
+        'directory' => 'cnab',
+        'max_items' => (int) env('RJET_CNAB_MAX_ITEMS', 500),
+        'line_ending' => "\r\n",
+        'queue' => [
+            'connection' => env('RJET_CNAB_QUEUE_CONNECTION', 'cnab_database'),
+            'name' => env('RJET_CNAB_QUEUE', 'cnab'),
+        ],
+        'recovery' => [
+            'margin_seconds' => 60,
+            'max_age_minutes' => 20,
+        ],
+    ],
 ];

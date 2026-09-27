@@ -17,6 +17,8 @@ final class DevelopmentSeeder extends Seeder
     public function run(): void
     {
         if (Company::query()->count() > count(['Altitude', 'Glow'])) {
+            $this->call(CnabConfigSeeder::class);
+
             return;
         }
 
@@ -30,5 +32,7 @@ final class DevelopmentSeeder extends Seeder
                     ->withBankAccounts(2)
                     ->create();
             });
+
+        $this->call(CnabConfigSeeder::class);
     }
 }

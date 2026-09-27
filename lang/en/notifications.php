@@ -6,6 +6,7 @@ return [
     'view_payment_request' => 'View request',
     'view_import_batch' => 'View import batch',
     'view_attachment_batch' => 'View attachment batch',
+    'view_payment_settlement' => 'Open settlement',
 
     'approval_assigned' => [
         'subject' => 'New payment request awaiting your approval',
@@ -35,5 +36,15 @@ return [
     'attachment_batch_renamed' => [
         'subject' => 'Attachment batch naming completed',
         'body' => ':count file(s) renamed with the YYYYMMDD_HHMMSS_SEQ pattern.',
+    ],
+
+    'cnab_file_generated' => [
+        'title' => 'CNAB remittance ready',
+        'body' => 'File sequence :sequence with :count payment(s), total :total, available for download.',
+    ],
+
+    'cnab_file_generation_failed' => [
+        'title' => 'CNAB remittance failed',
+        'body' => ':reason',
     ],
 ];

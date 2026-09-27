@@ -8,6 +8,7 @@ use App\Enums\ApprovalStatus;
 use App\Enums\AttachmentType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
+use App\Enums\PaymentSettlementStatus;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasBlameable;
 use App\Models\Concerns\HasUuid;
@@ -125,6 +126,38 @@ final class PaymentRequest extends Model
     public function approvals(): HasMany
     {
         return $this->hasMany(Approval::class);
+    }
+
+    /**
+     * @return HasMany<PaymentSettlementItem, $this>
+     */
+    public function settlementItems(): HasMany
+    {
+        return $this->hasMany(PaymentSettlementItem::class);
+    }
+
+    /**
+     * @return HasOne<PaymentSettlementItem, $this>
+     */
+    public function activeSettlementItem(): HasOne
+    {
+        return $this->hasOne(PaymentSettlementItem::class)->whereNull('released_at');
+    }
+
+    public function isInDraftSettlement(): bool
+    {
+        if (! $this->exists || $this->status !== PaymentRequestStatus::Launched) {
+            return false;
+        }
+
+        if ($this->relationLoaded('activeSettlementItem')) {
+            return $this->activeSettlementItem?->settlement?->status === PaymentSettlementStatus::Draft;
+        }
+
+        return $this->settlementItems()
+            ->whereNull('released_at')
+            ->whereHas('settlement', fn (Builder $query): Builder => $query->where('status', PaymentSettlementStatus::Draft))
+            ->exists();
     }
 
     public function company(): ?Company
@@ -259,6 +292,10 @@ final class PaymentRequest extends Model
             return true;
         }
 
+        if ($this->isInDraftSettlement()) {
+            return false;
+        }
+
         if ($this->status === PaymentRequestStatus::Requested && $this->isAwaitingApproval()) {
             return false;
         }
@@ -349,6 +386,22 @@ final class PaymentRequest extends Model
             'branch_id',
             $branch instanceof Branch ? $branch->getKey() : $branch,
         );
+    }
+
+    /**
+     * Launched requests without an active settlement item (soft-deleted ones are excluded by the global scope).
+     *
+     * @param  Builder<PaymentRequest>  $query
+     * @return Builder<PaymentRequest>
+     */
+    public function scopeEligibleForSettlement(Builder $query): Builder
+    {
+        return $query
+            ->where('status', PaymentRequestStatus::Launched)
+            ->whereDoesntHave(
+                'settlementItems',
+                fn (Builder $q): Builder => $q->whereNull('released_at'),
+            );
     }
 
     /**

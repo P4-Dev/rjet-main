@@ -51,6 +51,17 @@ final class PaymentRequestBankDetailsFactory extends Factory
         ]);
     }
 
+    /**
+     * Utility bill (arrecadação): 48 digits starting with 8, not payable through segment J.
+     */
+    public function utilityBill(): static
+    {
+        return $this->state(fn (): array => [
+            'digitable_line' => null,
+            'barcode' => '836200000005667800481000180975657313001589636081',
+        ]);
+    }
+
     public function pix(): static
     {
         return $this->state(fn (): array => [

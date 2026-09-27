@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Exceptions\BranchException;
 use App\Models\Bank;
 use App\Models\BranchBankAccount;
+use App\Services\BranchBankAccountService;
 use Illuminate\Database\Eloquent\Builder;
 
 final class BranchBankAccountObserver
@@ -34,5 +36,27 @@ final class BranchBankAccountObserver
             ->when($account->exists, fn (Builder $query) => $query->whereKeyNot($account->getKey()))
             ->where('is_default', true)
             ->update(['is_default' => false]);
+    }
+
+    /**
+     * @throws BranchException
+     */
+    public function updating(BranchBankAccount $account): void
+    {
+        app(BranchBankAccountService::class)->ensureBranchChangeAllowed($account);
+    }
+
+    /**
+     * Soft delete fires no FK, so a live CNAB configuration must be guarded here.
+     *
+     * @throws BranchException
+     */
+    public function deleting(BranchBankAccount $account): void
+    {
+        if ($account->isForceDeleting()) {
+            return;
+        }
+
+        app(BranchBankAccountService::class)->ensureDeletable($account);
     }
 }

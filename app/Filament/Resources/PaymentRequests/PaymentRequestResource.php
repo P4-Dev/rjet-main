@@ -85,7 +85,7 @@ final class PaymentRequestResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with('activeSettlementItem.settlement');
         $user = Filament::auth()->user();
 
         return $user !== null ? $query->visibleTo($user) : $query;

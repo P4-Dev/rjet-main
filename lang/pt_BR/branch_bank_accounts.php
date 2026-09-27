@@ -21,4 +21,9 @@ return [
     'sections' => [
         'bank_account_info' => 'Dados bancários',
     ],
+
+    'errors' => [
+        'has_cnab_config' => 'Esta conta tem configuração CNAB ativa. Exclua a configuração antes.',
+        'branch_locked' => 'A filial desta conta não pode mudar porque ela já foi usada em baixas ou configurações CNAB.',
+    ],
 ];

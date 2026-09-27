@@ -123,4 +123,28 @@ return [
         'supplier' => 'Supplier',
         'operational_category' => 'Operational category',
     ],
+
+    'payment_settlement_status' => [
+        'draft' => 'Draft',
+        'settled' => 'Settled',
+        'cancelled' => 'Cancelled',
+    ],
+
+    'cnab_file_status' => [
+        'queued' => 'Queued',
+        'generating' => 'Generating',
+        'generated' => 'Generated',
+        'failed' => 'Failed',
+        'superseded' => 'Superseded',
+    ],
+
+    'cnab_layout' => [
+        'itau_240' => 'Itaú — CNAB 240 (SISPAG)',
+    ],
+
+    'cnab_payment_type' => [
+        'boleto' => 'Boleto',
+        'transfer' => 'Transfer (TED/credit)',
+        'pix_key' => 'PIX (key)',
+    ],
 ];

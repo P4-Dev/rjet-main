@@ -28,7 +28,7 @@ final class TransitionStatusAction
                     return false;
                 }
 
-                return $record->status->allowedTransitions() !== []
+                return self::manualTransitions($record) !== []
                     && (Filament::auth()->user()?->can('transitionStatus', $record) ?? false);
             })
             ->modalHeading(__('payment_requests.actions.transition_status'))
@@ -37,7 +37,7 @@ final class TransitionStatusAction
             ->schema([
                 Select::make('to_status')
                     ->label(__('payment_requests.fields.next_status'))
-                    ->options(fn (PaymentRequest $record): array => collect($record->status->allowedTransitions())
+                    ->options(fn (PaymentRequest $record): array => collect(self::manualTransitions($record))
                         ->mapWithKeys(fn (PaymentRequestStatus $status): array => [$status->value => $status->getLabel()])
                         ->all())
                     ->required()
@@ -76,5 +76,18 @@ final class TransitionStatusAction
                     ->success()
                     ->send();
             });
+    }
+
+    /**
+     * Settled is reachable only through a payment settlement confirmation.
+     *
+     * @return list<PaymentRequestStatus>
+     */
+    private static function manualTransitions(PaymentRequest $record): array
+    {
+        return array_values(array_filter(
+            $record->status->allowedTransitions(),
+            fn (PaymentRequestStatus $status): bool => $status !== PaymentRequestStatus::Settled,
+        ));
     }
 }

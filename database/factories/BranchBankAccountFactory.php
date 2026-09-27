@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\AccountType;
+use App\Models\Bank;
 use App\Models\Branch;
 use App\Models\BranchBankAccount;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -54,6 +55,24 @@ final class BranchBankAccountFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'is_default' => true,
+        ]);
+    }
+
+    /**
+     * banks_code_unique is partial, so a repeated Bank::factory() for 341 would collide.
+     */
+    public function itau(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'bank_id' => Bank::query()->firstOrCreate(
+                ['code' => '341'],
+                ['name' => 'Itaú Unibanco', 'ispb' => '60701190', 'is_active' => true],
+            )->getKey(),
+            'bank_code' => '341',
+            'bank_name' => 'Itaú Unibanco',
+            'agency' => (string) fake()->numberBetween(1000, 9999),
+            'account_number' => (string) fake()->numberBetween(10000, 99999),
+            'account_digit' => (string) fake()->numberBetween(0, 9),
         ]);
     }
 

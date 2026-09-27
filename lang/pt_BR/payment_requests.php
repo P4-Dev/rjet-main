@@ -25,6 +25,9 @@ return [
         'due_at' => 'Prazo SLA',
         'escalated_at' => 'Escalada em',
         'has_approved_for_launch' => 'Pronta para lançar',
+        'settlement_date' => 'Data de baixa',
+        'settlement_account' => 'Conta pagadora',
+        'settlement' => 'Baixa',
     ],
 
     'sections' => [
@@ -113,5 +116,6 @@ return [
         'transfer_details_incomplete' => 'Preencha todos os dados obrigatórios da transferência.',
         'invalid_holder_document' => 'O CPF/CNPJ do favorecido é inválido.',
         'approval_required' => 'É necessário uma aprovação válida (sem alterações materiais) antes de lançar.',
+        'settlement_required' => 'A baixa da solicitação só pode ser feita pela tela de baixas.',
     ],
 ];

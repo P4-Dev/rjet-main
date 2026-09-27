@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Branches\RelationManagers;
 
 use App\Enums\AccountType;
+use App\Exceptions\BranchException;
+use App\Exceptions\BusinessException;
 use App\Models\Bank;
+use App\Models\BranchBankAccount;
+use App\Services\BranchBankAccountService;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -17,6 +22,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -25,7 +31,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
 
 final class BankAccountsRelationManager extends RelationManager
 {
@@ -153,12 +161,34 @@ final class BankAccountsRelationManager extends RelationManager
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make(),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->before(function (BranchBankAccount $record, DeleteAction $action): void {
+                            try {
+                                app(BranchBankAccountService::class)->ensureDeletable($record);
+                            } catch (BranchException $exception) {
+                                Notification::make()
+                                    ->title($exception->getUserMessage())
+                                    ->danger()
+                                    ->send();
+
+                                $action->cancel();
+                            }
+                        }),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->using(fn (Collection $records, Action $action): bool => self::runGuarded(
+                            $action,
+                            function () use ($records): void {
+                                $service = app(BranchBankAccountService::class);
+
+                                $records->each(fn (BranchBankAccount $record) => $service->ensureDeletable($record));
+
+                                DB::transaction(fn () => $records->each(fn (BranchBankAccount $record) => $service->delete($record)));
+                            },
+                        )),
                     RestoreBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                 ]),
@@ -166,5 +196,23 @@ final class BankAccountsRelationManager extends RelationManager
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->with('bank')
                 ->withoutGlobalScopes([SoftDeletingScope::class]));
+    }
+
+    private static function runGuarded(Action $action, callable $callback): bool
+    {
+        try {
+            $callback();
+
+            return true;
+        } catch (BusinessException $exception) {
+            Notification::make()
+                ->title($exception->getUserMessage())
+                ->danger()
+                ->send();
+
+            $action->halt();
+
+            return false;
+        }
     }
 }

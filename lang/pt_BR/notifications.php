@@ -6,6 +6,7 @@ return [
     'view_payment_request' => 'Ver solicitação',
     'view_import_batch' => 'Ver lote de importação',
     'view_attachment_batch' => 'Ver lote de anexos',
+    'view_payment_settlement' => 'Abrir baixa',
 
     'approval_assigned' => [
         'subject' => 'Nova solicitação aguardando sua aprovação',
@@ -35,5 +36,15 @@ return [
     'attachment_batch_renamed' => [
         'subject' => 'Nomenclatura do lote de anexos concluída',
         'body' => ':count arquivo(s) renomeado(s) com o padrão AAAAMMDD_HHMMSS_SEQ.',
+    ],
+
+    'cnab_file_generated' => [
+        'title' => 'Remessa CNAB pronta',
+        'body' => 'Arquivo NSA :sequence com :count pagamento(s), total :total, disponível para download.',
+    ],
+
+    'cnab_file_generation_failed' => [
+        'title' => 'Falha na remessa CNAB',
+        'body' => ':reason',
     ],
 ];

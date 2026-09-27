@@ -25,6 +25,9 @@ return [
         'due_at' => 'SLA due at',
         'escalated_at' => 'Escalated at',
         'has_approved_for_launch' => 'Ready to launch',
+        'settlement_date' => 'Settlement date',
+        'settlement_account' => 'Paying account',
+        'settlement' => 'Settlement',
     ],
 
     'sections' => [
@@ -113,5 +116,6 @@ return [
         'transfer_details_incomplete' => 'Fill in all required transfer details.',
         'invalid_holder_document' => 'The beneficiary CPF/CNPJ is invalid.',
         'approval_required' => 'A valid approval (without material changes) is required before launching.',
+        'settlement_required' => 'A request can only be settled from the settlements screen.',
     ],
 ];

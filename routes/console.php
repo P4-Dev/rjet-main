@@ -13,3 +13,7 @@ Artisan::command('inspire', function () {
 Schedule::command('approvals:escalate-sla')
     ->everyFifteenMinutes()
     ->withoutOverlapping();
+
+Schedule::command('cnab:recover-stuck-files')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();

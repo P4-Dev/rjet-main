@@ -117,4 +117,12 @@ final class PaymentRequestException extends BusinessException
             userMessage: __('payment_requests.errors.invalid_holder_document'),
         );
     }
+
+    public static function settlementRequired(): self
+    {
+        return new self(
+            message: 'Settled status requires a draft payment settlement containing the request.',
+            userMessage: __('payment_requests.errors.settlement_required'),
+        );
+    }
 }

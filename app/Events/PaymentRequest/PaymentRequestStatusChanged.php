@@ -7,10 +7,11 @@ namespace App\Events\PaymentRequest;
 use App\Enums\PaymentRequestStatus;
 use App\Models\PaymentRequest;
 use App\Models\User;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-final class PaymentRequestStatusChanged
+final class PaymentRequestStatusChanged implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
     use SerializesModels;

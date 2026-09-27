@@ -15,12 +15,14 @@ final class BankFactory extends Factory
     protected $model = Bank::class;
 
     /**
+     * Code 341 is reserved for the shared Itaú row created by BranchBankAccountFactory::itau().
+     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'code' => str_pad((string) fake()->unique()->numberBetween(1, 999), 3, '0', STR_PAD_LEFT),
+            'code' => str_pad((string) fake()->unique()->randomElement(array_diff(range(1, 999), [341])), 3, '0', STR_PAD_LEFT),
             'name' => fake()->company().' Bank',
             'ispb' => fake()->optional()->numerify('########'),
             'is_active' => true,

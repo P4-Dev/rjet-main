@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\DTOs\PaymentRequestBankDetailsData;
+use App\DTOs\BoletoOcrResult;
 use App\DTOs\PaymentRequestData;
 use App\Enums\AttachmentType;
 use App\Enums\DepositType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRequestStatus;
+use App\Enums\PaymentSettlementStatus;
 use App\Enums\PixKeyType;
 use App\Events\PaymentRequest\PaymentRequestCreated;
 use App\Events\PaymentRequest\PaymentRequestStatusChanged;
@@ -21,6 +22,7 @@ use App\Models\Branch;
 use App\Models\CostCenter;
 use App\Models\PaymentRequest;
 use App\Models\PaymentRequestStatusHistory;
+use App\Models\PaymentSettlement;
 use App\Models\User;
 use App\Rules\ValidCnpj;
 use App\Rules\ValidCpf;
@@ -151,6 +153,7 @@ final class PaymentRequestService
         PaymentRequestStatus $to,
         User $actor,
         ?string $notes = null,
+        ?PaymentSettlement $settlement = null,
     ): PaymentRequest {
         if (! ($actor->isOperador() || $actor->isAdm())) {
             throw PaymentRequestException::unauthorizedStatusTransition();
@@ -168,6 +171,10 @@ final class PaymentRequestService
 
         if ($to === PaymentRequestStatus::Launched && ! $request->hasApprovedForLaunch()) {
             throw ApprovalException::approvalRequired();
+        }
+
+        if ($to === PaymentRequestStatus::Settled) {
+            $this->assertSettlementContains($request, $settlement);
         }
 
         $paymentRequest = DB::transaction(function () use ($request, $from, $to, $actor, $notes): PaymentRequest {
@@ -188,6 +195,26 @@ final class PaymentRequestService
         Event::dispatch(new PaymentRequestStatusChanged($paymentRequest, $from, $to, $actor));
 
         return $paymentRequest;
+    }
+
+    /**
+     * Launched → Settled only happens through PaymentSettlementService::confirm.
+     *
+     * @throws PaymentRequestException
+     */
+    private function assertSettlementContains(PaymentRequest $request, ?PaymentSettlement $settlement): void
+    {
+        if ($settlement === null || $settlement->status !== PaymentSettlementStatus::Draft) {
+            throw PaymentRequestException::settlementRequired();
+        }
+
+        $isActiveItem = $settlement->activeItems()
+            ->where('payment_request_id', $request->getKey())
+            ->exists();
+
+        if (! $isActiveItem) {
+            throw PaymentRequestException::settlementRequired();
+        }
     }
 
     public function recordInitialStatus(PaymentRequest $request, User $actor, bool $dispatchEvent = true): void
@@ -394,7 +421,7 @@ final class PaymentRequestService
     /**
      * Apply OCR result only onto blank fields.
      */
-    public function applyOcrResult(PaymentRequest $request, \App\DTOs\BoletoOcrResult $result): PaymentRequest
+    public function applyOcrResult(PaymentRequest $request, BoletoOcrResult $result): PaymentRequest
     {
         if (! $result->wasSuccessful) {
             return $request;
