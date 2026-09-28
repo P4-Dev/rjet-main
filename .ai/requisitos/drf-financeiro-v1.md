@@ -815,8 +815,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Números batem com consultas de referência em base de teste.
-- [ ] Filtro por empresa/filial/período quando previsto.
+- [x] Números batem com consultas de referência em base de teste.
+- [x] Filtro por empresa/filial/período quando previsto.
 
 ---
 
@@ -830,8 +830,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Gráficos respondem a filtros globais do dashboard.
-- [ ] Performance adequada para ~70 pagamentos/dia (RNF011).
+- [x] Gráficos respondem a filtros globais do dashboard.
+- [x] Performance adequada para ~70 pagamentos/dia (RNF011).
 
 ---
 
@@ -845,8 +845,8 @@ Os requisitos estão numerados **RF001..RF037** e agrupados por fase. Cada item 
 
 **Critérios de aceite:**
 
-- [ ] Excel contém colunas acordadas e abre em ferramenta padrão.
-- [ ] Links de anexos respeitam autenticação (URL assinada ou equivalente).
+- [ ] Excel contém colunas acordadas e abre em ferramenta padrão. *(Excel gerado e lido nos testes; colunas ainda a validar com a RJET — P-F8-COLS, §7.1.)*
+- [x] Links de anexos respeitam autenticação (URL assinada ou equivalente).
 
 ---
 
@@ -1013,6 +1013,18 @@ Produção em **S3** (private); desenvolvimento pode usar disco local — [.ai/d
 | RF023 | `Approval`, `ApprovalStatus`, `ApprovalsRelationManager` | `ApprovalStatusTest`, `ApprovalCascadeTest`, `ApprovalAuthorizationTest` | Implementado |
 | RF024 | `approval_sla_business_days`, `BusinessDays`, `approvals:escalate-sla`, `ApprovalSlaBreached` | `ApprovalSlaEscalationTest`, `BusinessDaysTest`, form SLA Company | Implementado |
 
+### 7.1 Matriz de rastreabilidade (Fase 8)
+
+> Detalhes em [.ai/entregas/fase-8-dashboard-relatorios.md](../entregas/fase-8-dashboard-relatorios.md).
+
+| Requisito | Artefatos principais | Testes | Status |
+|-----------|----------------------|--------|--------|
+| RF035 | `App\Filament\Pages\Dashboard`, `PaymentOverviewStats`, `DashboardMetricsService::stats()`, `DashboardFilterData`, `FlushDashboardMetricsCache` | `DashboardMetricsServiceTest`, `DashboardMetricsCacheTest`, `DashboardPageTest` | Implementado |
+| RF036 | `PaymentsByBranchChart`, `PaymentsByCostCenterChart`, `DashboardMetricsService::byBranch()` / `byCostCenter()` (máx. 12 barras com "Outros") | `DashboardMetricsServiceTest`, `DashboardWidgetsTest`, `DashboardPerformanceTest` | Implementado |
+| RF037 | `AnalyticalReport`, `AnalyticalReportService`, `GenerateAnalyticalReportJob`, `OpenSpoutXlsxSpreadsheetWriter`, `AnalyticalReportResource`, `AnalyticalReportPolicy`, rota `report-attachments.open` | `GenerateAnalyticalReportJobTest`, `AnalyticalReportServiceTest`, `ReportAttachmentLinkTest`, `AnalyticalReportDownloadTest`, `AnalyticalReportAuthorizationTest`, `AnalyticalReportResourceTest`, `AnalyticalReportPruneTest`, `SpreadsheetWriterTest` | Implementado (colunas pendentes de validação — P-F8-COLS) |
+
+Pendências da Fase 8: **P-F8-COLS** (validar colunas do Excel com a RJET; não bloqueia, sem migration), **P-S3-DRIVER** (driver S3 ausente do lock; `temporaryUrl` em produção S3 depende dele), **P-F5-OPENSPOUT** (promover `openspout/openspout` a `require` direto; não bloqueia).
+
 
 ---
 
@@ -1038,4 +1050,5 @@ Produção em **S3** (private); desenvolvimento pode usar disco local — [.ai/d
 | 1.0 | 2026-07-07 | tech-writer | Versão inicial do DRF |
 | 1.1 | 2026-07-07 | tech-writer | Ajustes pós-levantamento |
 | 1.2 | 2026-08-12 | tech-writer | Fase 4: critérios RF019–RF024 marcados; eventos F4; escada SLA fechada (§8); matriz §7 |
+| 1.3 | 2026-09-27 | tech-writer | Fase 8: critérios RF035–RF037 marcados (colunas do Excel pendentes, P-F8-COLS); matriz §7.1 |
 

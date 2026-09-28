@@ -7,6 +7,7 @@ return [
     'view_import_batch' => 'View import batch',
     'view_attachment_batch' => 'View attachment batch',
     'view_payment_settlement' => 'Open settlement',
+    'view_analytical_report' => 'View report',
 
     'approval_assigned' => [
         'subject' => 'New payment request awaiting your approval',
@@ -46,5 +47,15 @@ return [
     'cnab_file_generation_failed' => [
         'title' => 'CNAB remittance failed',
         'body' => ':reason',
+    ],
+
+    'analytical_report_generated' => [
+        'title' => 'Analytical report ready',
+        'body' => 'The report from :from to :until (:basis) is ready, with :count rows.',
+    ],
+
+    'analytical_report_generation_failed' => [
+        'title' => 'Analytical report generation failed',
+        'body' => 'The report from :from to :until could not be generated. :reason',
     ],
 ];

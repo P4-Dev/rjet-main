@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\AnalyticalReport;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -16,4 +17,8 @@ Schedule::command('approvals:escalate-sla')
 
 Schedule::command('cnab:recover-stuck-files')
     ->everyFiveMinutes()
+    ->withoutOverlapping();
+
+Schedule::command('model:prune', ['--model' => [AnalyticalReport::class]])
+    ->dailyAt('02:00')
     ->withoutOverlapping();

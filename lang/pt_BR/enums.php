@@ -147,4 +147,23 @@ return [
         'transfer' => 'Transferência (TED/crédito)',
         'pix_key' => 'PIX (chave)',
     ],
+
+    'analytical_report_status' => [
+        'queued' => 'Na fila',
+        'generating' => 'Gerando',
+        'generated' => 'Pronto',
+        'failed' => 'Falhou',
+    ],
+
+    'report_date_basis' => [
+        'due_date' => 'Vencimento',
+        'settlement_date' => 'Data de baixa',
+        'request_date' => 'Data da solicitação',
+    ],
+
+    'payment_due_situation' => [
+        'paid' => 'Pago',
+        'upcoming' => 'A vencer',
+        'overdue' => 'Vencido',
+    ],
 ];

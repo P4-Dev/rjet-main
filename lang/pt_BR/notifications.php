@@ -7,6 +7,7 @@ return [
     'view_import_batch' => 'Ver lote de importação',
     'view_attachment_batch' => 'Ver lote de anexos',
     'view_payment_settlement' => 'Abrir baixa',
+    'view_analytical_report' => 'Ver relatório',
 
     'approval_assigned' => [
         'subject' => 'Nova solicitação aguardando sua aprovação',
@@ -46,5 +47,15 @@ return [
     'cnab_file_generation_failed' => [
         'title' => 'Falha na remessa CNAB',
         'body' => ':reason',
+    ],
+
+    'analytical_report_generated' => [
+        'title' => 'Relatório analítico pronto',
+        'body' => 'O relatório de :from a :until (:basis) está pronto, com :count linhas.',
+    ],
+
+    'analytical_report_generation_failed' => [
+        'title' => 'Falha ao gerar o relatório analítico',
+        'body' => 'Não foi possível gerar o relatório de :from a :until. :reason',
     ],
 ];

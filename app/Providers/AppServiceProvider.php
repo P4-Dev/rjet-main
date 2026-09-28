@@ -14,10 +14,13 @@ use App\Integrations\Ocr\BoletoOcrClient;
 use App\Integrations\Ocr\LocalBoletoOcrClient;
 use App\Integrations\Ocr\NullBoletoOcrClient;
 use App\Integrations\Spreadsheet\OpenSpoutSpreadsheetReader;
+use App\Integrations\Spreadsheet\OpenSpoutXlsxSpreadsheetWriter;
 use App\Integrations\Spreadsheet\SpreadsheetReader;
+use App\Integrations\Spreadsheet\SpreadsheetWriter;
 use App\Listeners\PaymentRequest\LogPaymentRequestActivity;
 use App\Listeners\PaymentRequest\LogPaymentRequestBatchImported;
 use App\Listeners\PaymentRequest\NotifyImportBatchCompleted;
+use App\Models\AnalyticalReport;
 use App\Models\Appropriation;
 use App\Models\Approval;
 use App\Models\ApprovalRule;
@@ -43,6 +46,7 @@ use App\Observers\AttachmentBatchObserver;
 use App\Observers\CnabFileObserver;
 use App\Observers\ImportBatchObserver;
 use App\Observers\PaymentSettlementObserver;
+use App\Policies\AnalyticalReportPolicy;
 use App\Policies\AppropriationPolicy;
 use App\Policies\ApprovalPolicy;
 use App\Policies\ApprovalRulePolicy;
@@ -98,6 +102,7 @@ class AppServiceProvider extends ServiceProvider
         PaymentSettlement::class => PaymentSettlementPolicy::class,
         CnabConfig::class => CnabConfigPolicy::class,
         CnabFile::class => CnabFilePolicy::class,
+        AnalyticalReport::class => AnalyticalReportPolicy::class,
     ];
 
     public function register(): void
@@ -108,6 +113,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(SpreadsheetReader::class, OpenSpoutSpreadsheetReader::class);
+        $this->app->bind(SpreadsheetWriter::class, OpenSpoutXlsxSpreadsheetWriter::class);
 
         $this->app->singleton(CnabAdapterResolver::class, fn (Application $app): CnabAdapterResolver => new CnabAdapterResolver($app, [
             CnabLayout::Itau240->value => Itau240RemittanceAdapter::class,

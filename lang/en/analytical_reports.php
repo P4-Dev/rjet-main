@@ -1,0 +1,118 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'label' => 'Analytical report',
+    'plural' => 'Analytical reports',
+    'navigation_label' => 'Analytical reports',
+    'filename_prefix' => 'relatorio-analitico',
+    'pix_qr_code' => 'QR Code',
+    'payer_account_format' => ':bank · Branch :agency · Account :account',
+
+    'fields' => [
+        'date_basis' => 'Date basis',
+        'period_start' => 'Period start',
+        'period_end' => 'Period end',
+        'company_id' => 'Company',
+        'branch_id' => 'Branch',
+        'statuses' => 'Statuses',
+        'status' => 'Status',
+        'rows_count' => 'Rows',
+        'attachments_count' => 'Attachments',
+        'filename' => 'File',
+        'generated_at' => 'Generated at',
+        'failure_reason' => 'Failure reason',
+        'started_at' => 'Started at',
+        'all' => 'All',
+        'all_statuses' => 'All statuses',
+        'period' => 'Period',
+    ],
+
+    'sections' => [
+        'filters' => 'Filters',
+        'result' => 'Result',
+    ],
+
+    'filters' => [
+        'mine' => 'My reports',
+        'status' => 'Status',
+    ],
+
+    'actions' => [
+        'request' => 'Generate analytical report',
+        'download' => 'Download',
+        'retry' => 'Try again',
+        'view' => 'View report',
+    ],
+
+    'messages' => [
+        'queued' => 'Report queued. You will be notified when it is ready.',
+        'retry_queued' => 'Report queued again.',
+        'generation_interrupted' => 'The generation was interrupted. Try again.',
+        'requester_unavailable' => 'The requester is no longer available to generate this report.',
+    ],
+
+    'errors' => [
+        'unauthorized' => 'You cannot perform this action on this report.',
+        'invalid_period' => 'Provide a valid period.',
+        'no_matching_requests' => 'No payment requests match these filters.',
+        'too_many_rows' => 'The filter matches :found requests. The maximum is :max. Narrow the period.',
+        'too_many_in_progress' => 'You already have :max reports being generated. Wait for one to finish.',
+        'requester_unavailable' => 'The requester is no longer available to generate this report.',
+        'not_downloadable' => 'This report is not available for download yet.',
+        'file_missing' => 'The file of this report is no longer available. Generate another one.',
+        'not_retryable' => 'This report cannot be generated again right now.',
+        'storage_write_failed' => 'The file could not be saved. The generation will be retried.',
+    ],
+
+    'sheet' => [
+        'requests' => 'Requests',
+        'attachments' => 'Attachments',
+    ],
+
+    'columns' => [
+        'request_id' => 'Request ID',
+        'open_request' => 'Open request',
+        'company' => 'Company',
+        'branch' => 'Branch',
+        'branch_document' => 'Branch CNPJ',
+        'status' => 'Status',
+        'situation' => 'Situation',
+        'request_date' => 'Request date',
+        'due_date' => 'Due date',
+        'requester' => 'Requester',
+        'person_type' => 'Person type',
+        'supplier_document' => 'Supplier CPF/CNPJ',
+        'supplier' => 'Supplier',
+        'supplier_legal_name' => 'Supplier legal name',
+        'cost_center' => 'Cost center',
+        'appropriation' => 'Appropriation',
+        'payment_method' => 'Payment method',
+        'deposit_type' => 'Deposit type',
+        'gross_amount' => 'Gross amount',
+        'discount_amount' => 'Discounts/deductions',
+        'net_amount' => 'Net amount',
+        'digitable_line' => 'Digitable line / barcode',
+        'pix_key' => 'PIX key',
+        'beneficiary_bank' => 'Beneficiary bank',
+        'agency' => 'Agency',
+        'account' => 'Account',
+        'holder_name' => 'Holder',
+        'holder_document' => 'Holder CPF/CNPJ',
+        'settlement_status' => 'Settlement status',
+        'settlement_date' => 'Settlement date',
+        'settled_amount' => 'Settled amount',
+        'payer_account' => 'Paying account',
+        'settled_at' => 'Settlement confirmed at',
+        'notes' => 'Notes',
+        'attachments_count' => 'Attachments',
+        'attachment' => 'Attachment :number',
+        'attachment_type' => 'Attachment type',
+        'name' => 'Name',
+        'mime_type' => 'MIME type',
+        'size_kb' => 'Size (KB)',
+        'uploaded_at' => 'Uploaded at',
+        'open' => 'Open',
+    ],
+];

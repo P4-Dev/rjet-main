@@ -383,9 +383,35 @@ final class PaymentRequest extends Model
     public function scopeForBranch(Builder $query, Branch|string $branch): Builder
     {
         return $query->where(
-            'branch_id',
+            $query->qualifyColumn('branch_id'),
             $branch instanceof Branch ? $branch->getKey() : $branch,
         );
+    }
+
+    /**
+     * @param  Builder<PaymentRequest>  $query
+     * @return Builder<PaymentRequest>
+     */
+    public function scopeForCompany(Builder $query, Company|string $company): Builder
+    {
+        return $query->whereIn(
+            $query->qualifyColumn('branch_id'),
+            Branch::withTrashed()
+                ->where('company_id', $company instanceof Company ? $company->getKey() : $company)
+                ->select('id'),
+        );
+    }
+
+    /**
+     * @param  Builder<PaymentRequest>  $query
+     * @return Builder<PaymentRequest>
+     */
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->whereIn($query->qualifyColumn('status'), [
+            PaymentRequestStatus::Requested->value,
+            PaymentRequestStatus::Launched->value,
+        ]);
     }
 
     /**

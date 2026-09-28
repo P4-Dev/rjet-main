@@ -1,0 +1,118 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'label' => 'Relatório analítico',
+    'plural' => 'Relatórios analíticos',
+    'navigation_label' => 'Relatórios analíticos',
+    'filename_prefix' => 'relatorio-analitico',
+    'pix_qr_code' => 'QR Code',
+    'payer_account_format' => ':bank · Ag :agency · CC :account',
+
+    'fields' => [
+        'date_basis' => 'Base de data',
+        'period_start' => 'Início do período',
+        'period_end' => 'Fim do período',
+        'company_id' => 'Empresa',
+        'branch_id' => 'Filial',
+        'statuses' => 'Status',
+        'status' => 'Status',
+        'rows_count' => 'Linhas',
+        'attachments_count' => 'Anexos',
+        'filename' => 'Arquivo',
+        'generated_at' => 'Gerado em',
+        'failure_reason' => 'Motivo da falha',
+        'started_at' => 'Iniciado em',
+        'all' => 'Todas',
+        'all_statuses' => 'Todos os status',
+        'period' => 'Período',
+    ],
+
+    'sections' => [
+        'filters' => 'Filtros',
+        'result' => 'Resultado',
+    ],
+
+    'filters' => [
+        'mine' => 'Meus relatórios',
+        'status' => 'Status',
+    ],
+
+    'actions' => [
+        'request' => 'Gerar relatório analítico',
+        'download' => 'Baixar',
+        'retry' => 'Tentar de novo',
+        'view' => 'Ver relatório',
+    ],
+
+    'messages' => [
+        'queued' => 'Relatório enfileirado. Você será notificado quando estiver pronto.',
+        'retry_queued' => 'Relatório enfileirado de novo.',
+        'generation_interrupted' => 'A geração foi interrompida. Tente de novo.',
+        'requester_unavailable' => 'O solicitante não está mais disponível para gerar este relatório.',
+    ],
+
+    'errors' => [
+        'unauthorized' => 'Você não pode executar esta ação neste relatório.',
+        'invalid_period' => 'Informe um período válido.',
+        'no_matching_requests' => 'Nenhuma solicitação encontrada com esses filtros.',
+        'too_many_rows' => 'O filtro tem :found solicitações. O máximo é :max. Reduza o período.',
+        'too_many_in_progress' => 'Você já tem :max relatórios em geração. Espere um terminar.',
+        'requester_unavailable' => 'O solicitante não está mais disponível para gerar este relatório.',
+        'not_downloadable' => 'Este relatório ainda não está disponível para download.',
+        'file_missing' => 'O arquivo deste relatório não está mais disponível. Gere outro.',
+        'not_retryable' => 'Este relatório não pode ser gerado de novo agora.',
+        'storage_write_failed' => 'Não foi possível gravar o arquivo. A geração será tentada de novo.',
+    ],
+
+    'sheet' => [
+        'requests' => 'Solicitações',
+        'attachments' => 'Anexos',
+    ],
+
+    'columns' => [
+        'request_id' => 'ID da solicitação',
+        'open_request' => 'Abrir solicitação',
+        'company' => 'Empresa',
+        'branch' => 'Filial',
+        'branch_document' => 'CNPJ da filial',
+        'status' => 'Status',
+        'situation' => 'Situação',
+        'request_date' => 'Data da solicitação',
+        'due_date' => 'Vencimento',
+        'requester' => 'Solicitante',
+        'person_type' => 'Tipo de pessoa',
+        'supplier_document' => 'CPF/CNPJ do fornecedor',
+        'supplier' => 'Fornecedor',
+        'supplier_legal_name' => 'Razão social do fornecedor',
+        'cost_center' => 'Centro de custo',
+        'appropriation' => 'Apropriação',
+        'payment_method' => 'Forma de pagamento',
+        'deposit_type' => 'Tipo de depósito',
+        'gross_amount' => 'Valor bruto',
+        'discount_amount' => 'Descontos/deduções',
+        'net_amount' => 'Valor líquido',
+        'digitable_line' => 'Linha digitável / código de barras',
+        'pix_key' => 'Chave PIX',
+        'beneficiary_bank' => 'Banco do favorecido',
+        'agency' => 'Agência',
+        'account' => 'Conta',
+        'holder_name' => 'Titular',
+        'holder_document' => 'CPF/CNPJ do titular',
+        'settlement_status' => 'Situação da baixa',
+        'settlement_date' => 'Data de baixa',
+        'settled_amount' => 'Valor baixado',
+        'payer_account' => 'Conta pagadora',
+        'settled_at' => 'Baixa confirmada em',
+        'notes' => 'Observações',
+        'attachments_count' => 'Qtd. anexos',
+        'attachment' => 'Anexo :number',
+        'attachment_type' => 'Tipo do anexo',
+        'name' => 'Nome',
+        'mime_type' => 'Tipo MIME',
+        'size_kb' => 'Tamanho (KB)',
+        'uploaded_at' => 'Enviado em',
+        'open' => 'Abrir',
+    ],
+];

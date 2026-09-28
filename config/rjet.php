@@ -44,4 +44,21 @@ return [
             'max_age_minutes' => 20,
         ],
     ],
+
+    'dashboard' => [
+        'cache_ttl_seconds' => (int) env('RJET_DASHBOARD_CACHE_TTL', 300),
+        'chart_max_categories' => 12,
+    ],
+
+    'reports' => [
+        'disk' => env('RJET_REPORTS_DISK') ?: env('FILESYSTEM_DISK', 'local'),
+        'directory' => 'reports',
+        'queue' => env('RJET_REPORTS_QUEUE', 'default'),
+        'max_rows' => (int) env('RJET_REPORTS_MAX_ROWS', 20000),
+        'max_in_progress_per_user' => 3,
+        'max_attachment_columns' => 10,
+        'retention_days' => (int) env('RJET_REPORTS_RETENTION_DAYS', 30),
+        'attachment_redirect_ttl_minutes' => 5,
+        'stale_after_minutes' => 30,
+    ],
 ];

@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Models\Concerns\HasBlameable;
 use App\Models\Concerns\HasUuid;
+use App\Observers\BranchObserver;
 use Database\Factories\BranchFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy(BranchObserver::class)]
 final class Branch extends Model
 {
     /** @use HasFactory<BranchFactory> */

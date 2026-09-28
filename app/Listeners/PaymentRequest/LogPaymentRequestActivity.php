@@ -20,7 +20,6 @@ final class LogPaymentRequestActivity
 
     public function handleStatusChanged(PaymentRequestStatusChanged $event): void
     {
-        // Hook for F8 dashboard cache invalidation.
         Log::info('Payment request status changed.', [
             'payment_request_id' => $event->paymentRequest->getKey(),
             'from' => $event->from->value,

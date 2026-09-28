@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Models\AnalyticalReport;
 use App\Models\Attachment;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\PaymentRequest;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 final class CompanyObserver
 {
     /**
      * Soft-delete threshold captured per company for cascade restore.
      *
-     * @var array<string, \Illuminate\Support\Carbon|null>
+     * @var array<string, Carbon|null>
      */
     private array $restoreThresholds = [];
 
@@ -102,6 +105,13 @@ final class CompanyObserver
         $branchIds = Branch::withTrashed()
             ->where('company_id', $company->getKey())
             ->pluck('id');
+
+        AnalyticalReport::withTrashed()
+            ->where(fn (Builder $query): Builder => $query
+                ->where('company_id', $company->getKey())
+                ->orWhereIn('branch_id', $branchIds))
+            ->get()
+            ->each(fn (AnalyticalReport $report): bool => (bool) $report->forceDelete());
 
         PaymentRequest::withTrashed()
             ->whereIn('branch_id', $branchIds)
